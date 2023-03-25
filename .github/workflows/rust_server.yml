@@ -6,47 +6,47 @@ on:
     branches: [main]
 
 jobs:
-    test:
-      runs-on: ${{ matrix.os }}
+  test:
+    runs-on: ${{ matrix.os }}
 
-      strategy:
-        matrix:
-          os: [ubuntu-latest, macOS-latest, windows-latest]
-          deno: ["v1.x", "nightly"]
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+        deno: ["v1.x", "nightly"]
 
-      steps:
-        - uses: actions/checkout@v2
+    steps:
+      - uses: actions/checkout@v2
 
-        - name: Update local toolchain
-          working-directory: ./server
-          run: |
-            rustup update
-            rustup component add clippy
-            rustup install nightly          
+      - name: Update local toolchain
+        working-directory: ./server
+        run: |
+          rustup update
+          rustup component add clippy
+          rustup install nightly
 
-        - name: Toolchain info
-          working-directory: ./server
-          run: |
-            cargo --version --verbose
-            rustc --version
-            cargo clippy --version          
+      - name: Toolchain info
+        working-directory: ./server
+        run: |
+          cargo --version --verbose
+          rustc --version
+          cargo clippy --version
 
-        - name: Lint
-          working-directory: ./server
-          run: |
-            cd phaser
-            cargo fmt -- --check
-            cargo clippy -- -D warnings          
+      - name: Lint
+        working-directory: ./server
+        run: |
+          cd phaser
+          cargo fmt -- --check
+          cargo clippy -- -D warnings
 
-        - name: Test
-          working-directory: ./server
-          run: |
-            cd phaser
-            cargo check
-            cargo test --all          
+      - name: Test
+        working-directory: ./server
+        run: |
+          cd phaser
+          cargo check
+          cargo test --all
 
-        - name: Build
-          working-directory: ./server
-          run: |
-            cd phaser
-            cargo build --release         
+      - name: Build
+        working-directory: ./server
+        run: |
+          cd phaser
+          cargo build --release
