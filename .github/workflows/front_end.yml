@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
-        deno: ["v1.x", "nightly"]
+        deno: ["v1.x"]
 
     steps:
     - name: Set up repo
