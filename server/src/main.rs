@@ -18,3 +18,7 @@ async fn main() -> std::io::Result<()> {
     .run()
     .await
 }
+#[test]
+fn initial_test() {
+    assert_eq!(2 + 2, 4);
+}
