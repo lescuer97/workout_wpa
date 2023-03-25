@@ -1,0 +1,66 @@
+syntax = "proto3";
+package workouts;
+
+enum Muscle {
+    BICEPS = 0;
+    TRICEPS = 1;
+    CHEST = 2;
+    BACK = 3;
+    LEGS = 4;
+    SHOULDERS = 5;
+    ABS = 6;
+    LAT = 7;
+}
+
+message Workout {
+    string name = 1;
+    int8 peso = 2;
+    int8 sets = 3;
+    string media_url = 4;
+    int8 rest  = 5;
+    int8 rest  = 5;
+}
+
+
+
+
+message WorkoutList {
+    repeated Workout workouts = 1;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
