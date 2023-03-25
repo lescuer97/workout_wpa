@@ -2,8 +2,8 @@ name: Rust server
 on:
   push:
     branches: [main]
-    pull_request:
-      branches: [main]
+  pull_request:
+    branches: [main]
 
   jobs:
     test:
@@ -18,30 +18,35 @@ on:
         - uses: actions/checkout@v2
 
         - name: Update local toolchain
+          working-directory: ./server
           run: |
             rustup update
             rustup component add clippy
             rustup install nightly          
 
         - name: Toolchain info
+          working-directory: ./server
           run: |
             cargo --version --verbose
             rustc --version
             cargo clippy --version          
 
         - name: Lint
+          working-directory: ./server
           run: |
             cd phaser
             cargo fmt -- --check
             cargo clippy -- -D warnings          
 
         - name: Test
+          working-directory: ./server
           run: |
             cd phaser
             cargo check
             cargo test --all          
 
         - name: Build
+          working-directory: ./server
           run: |
             cd phaser
             cargo build --release         
