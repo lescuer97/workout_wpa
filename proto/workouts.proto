@@ -7,25 +7,39 @@ enum Muscle {
     CHEST = 2;
     BACK = 3;
     LEGS = 4;
-    SHOULDERS = 5;
+    LOWER_BACK = 5;
     ABS = 6;
     LAT = 7;
+    TRAPS = 8;
+    QUADS = 9;
+    HAMSTRINGS = 10;
+    CALVES = 11;
+    GLUTES = 12;
+    FOREARMS = 13;
+    NECK = 14;
+    FRONT_DELTS = 15;
+    SIDE_DELTS = 16;
+    REAR_DELTS = 17;
+}
+enum WeightType {
+    KILOGRAMS = 0;
+    POUNDS = 1;
 }
 
-message Workout {
+message Excercise {
     string name = 1;
-    int8 peso = 2;
-    int8 sets = 3;
+    int32 weight = 2;
+    int32 sets = 3;
     string media_url = 4;
-    int8 rest  = 5;
-    int8 rest  = 5;
+    int32 rest  = 5;
+    WeightType weight_unit = 6;
 }
 
 
 
 
 message WorkoutList {
-    repeated Workout workouts = 1;
+    repeated Excercise workouts = 1;
 }
 
 
