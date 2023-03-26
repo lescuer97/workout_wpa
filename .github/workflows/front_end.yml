@@ -28,6 +28,10 @@ jobs:
       uses: denolib/setup-deno@v2
       with:
         deno-version: ${{ matrix.deno }}
+    - name: generate types
+      uses: denolib/setup-deno@v2
+      run: deno task parseProto
+
 
     - name: Run Tests
       run: deno test -A --unstable
