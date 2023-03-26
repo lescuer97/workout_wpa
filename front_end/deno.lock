@@ -164,5 +164,16 @@
     "https://esm.sh/v100/preact@10.11.0/jsx-runtime/src/index.d.ts": "e153460ed2b3fe2ad8b93696ecd48fbf73cd628b0b0ea6692b71804a3af69dfd",
     "https://esm.sh/v100/preact@10.11.0/src/index.d.ts": "1a5c331227be54be6515b0c92a469d352834fa413963ae84a39a05a3177111f6",
     "https://esm.sh/v100/preact@10.11.0/src/jsx.d.ts": "c423715fd7992b2e1446fea11d2d04e8adbd66c1edca1ce5e85f90e0d26a2eb2"
+  },
+  "npm": {
+    "specifiers": {
+      "google-protobuf": "google-protobuf@3.21.2"
+    },
+    "packages": {
+      "google-protobuf@3.21.2": {
+        "integrity": "sha512-3MSOYFO5U9mPGikIYCzK0SaThypfGgS6bHqrUGXG3DPHCrb+txNqeEcns1W0lkGfk0rCyNXm7xB9rMxnCiZOoA==",
+        "dependencies": {}
+      }
+    }
   }
 }
