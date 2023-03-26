@@ -7,16 +7,6 @@ pub mod workouts {
 }
 
 impl workouts::Excercise {
-    pub fn default() -> workouts::Excercise {
-        workouts::Excercise {
-            name: "".to_string(),
-            weight: 0,
-            media_url: "".to_string(),
-            sets: 0,
-            rest: 0,
-            weight_unit: workouts::WeightType::Kilograms.into(),
-        }
-    }
     pub fn new(
         name: String,
         weight: i32,
