@@ -1,9 +1,8 @@
-use std::{io::Result};
+use std::io::Result;
 
 use fs_extra::dir::*;
 
 fn main() -> Result<()> {
-
     let mut options = CopyOptions::new();
     options.overwrite = true;
 
