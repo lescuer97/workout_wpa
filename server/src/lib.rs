@@ -17,7 +17,14 @@ impl workouts::Excercise {
             weight_unit: workouts::WeightType::Kilograms.into(),
         }
     }
-    pub fn new(name: String, weight: i32, media_url: String, sets: i32, rest: i32, weight_type: workouts::WeightType) -> workouts::Excercise {
+    pub fn new(
+        name: String,
+        weight: i32,
+        media_url: String,
+        sets: i32,
+        rest: i32,
+        weight_type: workouts::WeightType,
+    ) -> workouts::Excercise {
         workouts::Excercise {
             name,
             weight,
@@ -28,5 +35,3 @@ impl workouts::Excercise {
         }
     }
 }
-
-
