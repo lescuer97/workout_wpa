@@ -18,7 +18,9 @@ jobs:
         deno: ["v1.x"]
 
     steps:
+    - uses: actions/setup-node@v3
     - uses: arduino/setup-protoc@v1
+
     - name: Set up repo
       uses: actions/checkout@v2
 
