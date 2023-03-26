@@ -30,7 +30,9 @@ jobs:
         deno-version: ${{ matrix.deno }}
 
     - name: generate types
-      run: deno task parseProto
+      run: |
+        npm install -g protoc-gen-ts
+        deno task parseProto
 
 
     - name: Run Tests
