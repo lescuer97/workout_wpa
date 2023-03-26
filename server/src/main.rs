@@ -1,7 +1,10 @@
 use actix_web::{get, App, HttpResponse, HttpServer, Responder};
+use server::workouts::{Excercise, WeightType};
+
 
 #[get("/")]
 async fn hello() -> impl Responder {
+
     HttpResponse::Ok().body("Hello world!")
 }
 
