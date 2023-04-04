@@ -1,5 +1,5 @@
 declare global {
-  type Excersize =  {
+  type Excersize = {
     name: string;
     weight: number;
     sets: number;
@@ -7,36 +7,35 @@ declare global {
     rest: number;
     weight_unit: WeightUnit;
     reps: number;
-  }
+    used_muscles: Array<Muscle>;
+  };
 
-
-  type WorkoutList =  {
+  type WorkoutList = {
     workouts: Array<Excersize>;
-  }
-
+  };
 }
-  export enum WeightUnit {
-    KILOGRAMS = "KILOGRAMS",
-    POUNDS = "POUNDS",
-  }
+export enum WeightUnit {
+  KILOGRAMS = "KILOGRAMS",
+  POUNDS = "POUNDS",
+}
 
-  export enum Muscle {
-    BICEPS = "BICEPS",
-    TRICEPS = "TRICEPS",
-    CHEST = "CHEST",
-    BACK = "BACK",
-    LEGS = "LEGS",
-    LOWER_BACK = "LOWER_BACK",
-    ABS = "ABS",
-    LAT = "LAT",
-    TRAPS = "TRAPS",
-    QUADS = "QUADS",
-    HAMSTRINGS = "HAMSTRINGS",
-    CALVES = "CALVES",
-    GLUTES = "GLUTES",
-    FOREARMS = "FOREARMS",
-    NECK = "NECK",
-    FRONT_DELTS = "FRONT_DELTS",
-    SIDE_DELTS = "SIDE_DELTS",
-    REAR_DELTS = "REAR_DELTS",
-  }
+export enum Muscle {
+  BICEPS = "BICEPS",
+  TRICEPS = "TRICEPS",
+  CHEST = "CHEST",
+  BACK = "BACK",
+  LEGS = "LEGS",
+  LOWER_BACK = "LOWER_BACK",
+  ABS = "ABS",
+  LAT = "LAT",
+  TRAPS = "TRAPS",
+  QUADS = "QUADS",
+  HAMSTRINGS = "HAMSTRINGS",
+  CALVES = "CALVES",
+  GLUTES = "GLUTES",
+  FOREARMS = "FOREARMS",
+  NECK = "NECK",
+  FRONT_DELTS = "FRONT_DELTS",
+  SIDE_DELTS = "SIDE_DELTS",
+  REAR_DELTS = "REAR_DELTS",
+}

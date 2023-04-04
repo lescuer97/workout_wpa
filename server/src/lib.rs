@@ -1,13 +1,12 @@
-use serde::{Deserialize, Serialize, Deserializer};
-
+use serde::{Deserialize, Serialize};
+#[allow(non_camel_case_types)]
 // use workouts::workouts_server::{Workouts, WorkoutsServer};
 // use workouts::WeightType;
 
 // pub mod workouts {
 //     include!(concat!(env!("OUT_DIR"), "/workouts.rs"));
 // }
-
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Serialize, Debug, Deserialize)]
 pub enum Muscle {
     BICEPS,
     TRICEPS,
@@ -40,7 +39,6 @@ impl Default for WeightUnit {
     }
 }
 
-
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Excercise {
     pub name: String,
@@ -50,8 +48,8 @@ pub struct Excercise {
     pub reps: i32,
     pub rest: i32,
     pub media_url: String,
+    pub used_muscles: Vec<Muscle>,
 }
-
 
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct WorkoutList {

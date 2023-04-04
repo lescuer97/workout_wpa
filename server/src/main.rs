@@ -1,10 +1,12 @@
+use actix_cors::Cors;
 use actix_web::{
-    get, post,error,
+    error, get,
+    http::header,
+    middleware, post,
     web::{self},
-    App, HttpRequest, HttpResponse, HttpServer, Responder, http::header, middleware,
+    App, HttpRequest, HttpResponse, HttpServer, Responder,
 };
 use server::{self, Excercise};
-use actix_cors::Cors;
 
 #[get("/")]
 async fn hello() -> impl Responder {
@@ -16,8 +18,10 @@ async fn post_workout(item: web::Json<Excercise>) -> impl Responder {
     println!("Got a request: {:?}", &item);
 
     // let body = req.
-    
-    HttpResponse::Ok().insert_header(header::ContentType(mime::APPLICATION_JSON)).json(item.0)
+
+    HttpResponse::Ok()
+        .insert_header(header::ContentType(mime::APPLICATION_JSON))
+        .json(item.0)
 }
 
 fn json_error_handler(err: error::JsonPayloadError, _req: &HttpRequest) -> error::Error {
@@ -44,7 +48,8 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Logger::default())
             .wrap(cors)
             .service(post_workout)
-            .service(hello).app_data(web::JsonConfig::default().error_handler(json_error_handler))
+            .service(hello)
+            .app_data(web::JsonConfig::default().error_handler(json_error_handler))
     })
     .bind(("127.0.0.1", 8080))?
     .run()

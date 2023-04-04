@@ -34,6 +34,7 @@ message Excercise {
     int32 rest  = 5;
     WeightUnit weight_unit = 6;
     int32 reps = 7;
+    repeated Muscle used_muscles = 8;
 }
 
 
@@ -42,40 +43,3 @@ message Excercise {
 message WorkoutList {
     repeated Excercise workouts = 1;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
