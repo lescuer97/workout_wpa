@@ -1,14 +1,12 @@
 repos:
 -   repo: https://github.com/doublify/pre-commit-rust
     rev: v1.0
-    files: '^server/.*\.rs'
     hooks:
     -   id: fmt
     -   id: cargo-check
 
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
-    files: '^front_end/.**'
     hooks:
     -   id: check-yaml
     -   id: end-of-file-fixer

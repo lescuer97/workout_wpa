@@ -23,7 +23,7 @@ deno task start
 
 ```
 cd server
-# you can use cargo watch 
+# you can use cargo watch
 cargo watch -x run
 ```
 
@@ -35,6 +35,8 @@ is necessary for the protobuf actions to work. for now the types are going to be
 sent via JSON instead of protobuf and are going to be directtly typed to Deno
 instead of being generated.
 
-On the server there is and alternative way to do this with protobug with actix
+- On the server there is and alternative way to do this with protobug with actix
 called
 [actix-protobuf](https://github.com/actix/actix-extras/tree/master/actix-protobuf)
+
+- I added a Cargo.toml file to the root of directory for the workspace at first because the precommit-hooks where not working correctly
