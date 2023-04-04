@@ -21,7 +21,7 @@ enum Muscle {
     SIDE_DELTS = 16;
     REAR_DELTS = 17;
 }
-enum WeightType {
+enum WeightUnit {
     KILOGRAMS = 0;
     POUNDS = 1;
 }
@@ -32,7 +32,8 @@ message Excercise {
     int32 sets = 3;
     string media_url = 4;
     int32 rest  = 5;
-    WeightType weight_unit = 6;
+    WeightUnit weight_unit = 6;
+    int32 reps = 7;
 }
 
 

@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "start": "deno task parseProto && deno run -A --watch=static/,routes/ dev.ts",
+    "start": "deno run -A --watch=static/,routes/ dev.ts",
     "parseProto": "deno run --allow-read --allow-write --allow-run --unstable ./protobuf_gen_type.ts "
   },
   "importMap": "./import_map.json",

@@ -1,6 +1,6 @@
 function ts_type_from_protobuf_type() {
   // copy proto dir to deno project
-  let copy_proto = Deno.run({ cmd: ["cp", "-r", "../proto", "."] });
+  const copy_proto = Deno.run({ cmd: ["cp", "-r", "../proto", "."] });
 
   copy_proto.status().then((status: Deno.ProcessStatus) => {
     if (status.success) {
@@ -11,29 +11,29 @@ function ts_type_from_protobuf_type() {
   });
 
   try {
-    Deno.readDirSync("generated_types");
+    Deno.readDirSync("generatedTypes");
   } catch (_) {
-    Deno.mkdirSync("generated_types");
+    Deno.mkdirSync("generatedTypes");
   }
 
   // command to run protoc
   const protoc = Deno.run({
-    cmd: ["protoc", "--ts_out=generated_types", "proto/workouts.proto"],
+    cmd: ["protoc", "--ts_out=generatedTypes", "proto/workouts.proto"],
   });
 
   // wait for success to clear the types
   protoc.status().then((status: Deno.ProcessStatus) => {
     if (status.success) {
-      let copy_of_types = Deno.run({
-        cmd: ["cp", "generated_types/proto/workouts.ts", "generated_types/"],
+      const copy_of_types = Deno.run({
+        cmd: ["cp", "generatedTypes/proto/workouts.ts", "generatedTypes/"],
       });
 
-      Deno.run({ cmd: ["rm", "-r", "generated_types/proto"] });
+      Deno.run({ cmd: ["rm", "-r", "generatedTypes/proto"] });
 
       copy_of_types.status().then(async (status: Deno.ProcessStatus) => {
         if (status.success) {
           const workoutsFile: string = await Deno.readTextFile(
-            "generated_types/workouts.ts",
+            "generatedTypes/workouts.ts",
           );
 
           const newWorkoutFile = workoutsFile.replaceAll(
@@ -41,7 +41,7 @@ function ts_type_from_protobuf_type() {
             "npm:google-protobuf",
           );
 
-          Deno.writeTextFile("generated_types/workouts.ts", newWorkoutFile)
+          Deno.writeTextFile("generatedTypes/workouts.ts", newWorkoutFile)
             .then(
               () => {
                 console.log("Written to file correctly");
@@ -56,7 +56,7 @@ function ts_type_from_protobuf_type() {
     } else {
       throw Error("something went wrong in the compilation");
     }
-  }).then((res) => {
+  }).then((_) => {
     Deno.run({ cmd: ["rm", "-r", "proto"] });
   });
 }
