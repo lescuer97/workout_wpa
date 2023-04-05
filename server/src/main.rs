@@ -70,7 +70,12 @@ async fn main() -> std::io::Result<()> {
 //     .bind(("127.0.0.1", 8080)).unwrap().run().await;
 //
 // }
-#[test]
-fn initial_test() {
-    assert_eq!(2 + 2, 4);
+//
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn initial_test() {
+        assert_eq!(2 + 2, 4);
+    }
 }
