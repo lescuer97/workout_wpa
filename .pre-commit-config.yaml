@@ -1,9 +1,10 @@
 repos:
--   repo: https://github.com/doublify/pre-commit-rust
-    rev: v1.0
+-   repo: https://github.com/lescuer97/pre-commit-rust
+    rev: 280fbc455c6ac7ebba62d9d63fe26d800189c0a4
     hooks:
     -   id: fmt
     -   id: cargo-check
+    -   id: cargo-test
 
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
