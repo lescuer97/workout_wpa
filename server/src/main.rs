@@ -1,9 +1,5 @@
 use actix_cors::Cors;
-use actix_web::{
-    error, get, middleware,
-    web::{self},
-    App, HttpRequest, HttpResponse, HttpServer, Responder,
-};
+use actix_web::{error, middleware, web, App, HttpRequest, HttpResponse, HttpServer};
 
 mod routes;
 use routes::workout::post_workout;

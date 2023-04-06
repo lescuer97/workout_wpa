@@ -1,9 +1,8 @@
 use actix_web::{
-    error, get,
     http::header,
-    middleware, post,
+    post,
     web::{self},
-    App, HttpRequest, HttpResponse, HttpServer, Responder,
+    HttpResponse, Responder,
 };
 
 use server::{self, Excercise};
