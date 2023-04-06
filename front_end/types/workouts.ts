@@ -8,12 +8,20 @@ declare global {
     weight_unit: WeightUnit;
     reps: number;
     used_muscles: Array<Muscle>;
+    workout_type: WorkoutType;
   };
 
   type WorkoutList = {
     workouts: Array<Excersize>;
   };
 }
+
+export enum WorkoutType {
+    CALISTHENICS = "CALISTHENICS",
+    WEIGHTS = "WEIGHTS",
+    MACHINE = "MACHINE",
+}
+
 export enum WeightUnit {
   KILOGRAMS = "KILOGRAMS",
   POUNDS = "POUNDS",

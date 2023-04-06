@@ -33,10 +33,18 @@ pub enum WeightUnit {
     KILOGRAMS,
     POUNDS,
 }
+
 impl Default for WeightUnit {
     fn default() -> Self {
         WeightUnit::KILOGRAMS
     }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum WorkoutType {
+    CALISTHENICS,
+    WEIGHTS,
+    MACHINE,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -49,31 +57,163 @@ pub struct Excercise {
     pub rest: i32,
     pub media_url: String,
     pub used_muscles: Vec<Muscle>,
+    pub workout_type: WorkoutType,
+}
+impl Excercise {
+    pub fn new(
+        name: String,
+        weight: i32,
+        media_url: String,
+        sets: i32,
+        rest: i32,
+        reps: i32,
+        weight_unit: WeightUnit,
+        used_muscles: Vec<Muscle>,
+        workout_type: WorkoutType,
+    ) -> Excercise {
+        return Excercise {
+            name,
+            weight,
+            media_url,
+            reps,
+            sets,
+            rest,
+            weight_unit,
+            used_muscles,
+            workout_type,
+        };
+    }
 }
 
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct WorkoutList {
     pub workouts: Vec<Excercise>,
 }
-//
-// impl Excercise {
-//     pub fn new(
-//         name: String,
-//         weight: i32,
-//         media_url: String,
-//         sets: i32,
-//         rest: i32,
-//         reps: i32,
-//         weight_type: u8,
-//     ) -> Excercise {
-//         return Excercise {
-//             name,
-//             weight,
-//             media_url,
-//             reps,
-//             sets,
-//             rest,
-//             weight_unit: weight_type,
-//         };
-//     }
-// }
+
+impl WorkoutList {
+    pub fn new(workouts: Vec<Excercise>) -> WorkoutList {
+        return WorkoutList { workouts };
+    }
+
+    pub fn pop(&mut self) -> Option<Excercise> {
+        self.workouts.pop()
+    }
+
+    pub fn push(&mut self, workout: Excercise) {
+        self.workouts.push(workout);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    // check if the excercise is created correctly
+    #[test]
+    fn new_excersice() {
+        let excercise: Excercise = Excercise::new(
+            "Bench Press".to_string(),
+            100,
+            "".to_string(),
+            3,
+            60,
+            8,
+            WeightUnit::KILOGRAMS,
+            vec![Muscle::CHEST, Muscle::FRONT_DELTS],
+            WorkoutType::WEIGHTS,
+        );
+
+        assert_eq!(
+            excercise,
+            Excercise {
+                name: "Bench Press".to_string(),
+                weight: 100,
+                weight_unit: WeightUnit::KILOGRAMS,
+                sets: 3,
+                reps: 8,
+                rest: 60,
+                media_url: "".to_string(),
+                used_muscles: vec![Muscle::CHEST, Muscle::FRONT_DELTS],
+                workout_type: WorkoutType::WEIGHTS
+            }
+        );
+    }
+    #[test]
+    fn create_workout_list() {
+        let ex_list: WorkoutList = WorkoutList::new(vec![
+            Excercise::new(
+                "Bench Press".to_string(),
+                100,
+                "".to_string(),
+                3,
+                60,
+                8,
+                WeightUnit::KILOGRAMS,
+                vec![Muscle::CHEST, Muscle::FRONT_DELTS],
+                WorkoutType::WEIGHTS,
+            ),
+            Excercise::new(
+                "Pull Up".to_string(),
+                100,
+                "".to_string(),
+                3,
+                60,
+                8,
+                WeightUnit::KILOGRAMS,
+                vec![Muscle::REAR_DELTS, Muscle::BACK],
+                WorkoutType::CALISTHENICS,
+            ),
+            Excercise::new(
+                "Incline Bench Press".to_string(),
+                100,
+                "".to_string(),
+                3,
+                60,
+                8,
+                WeightUnit::KILOGRAMS,
+                vec![Muscle::CHEST, Muscle::FRONT_DELTS],
+                WorkoutType::WEIGHTS,
+            ),
+        ]);
+
+        assert_eq!(
+            ex_list,
+            WorkoutList {
+                workouts: vec![
+                    Excercise::new(
+                        "Bench Press".to_string(),
+                        100,
+                        "".to_string(),
+                        3,
+                        60,
+                        8,
+                        WeightUnit::KILOGRAMS,
+                        vec![Muscle::CHEST, Muscle::FRONT_DELTS],
+                        WorkoutType::WEIGHTS
+                    ),
+                    Excercise::new(
+                        "Pull Up".to_string(),
+                        100,
+                        "".to_string(),
+                        3,
+                        60,
+                        8,
+                        WeightUnit::KILOGRAMS,
+                        vec![Muscle::REAR_DELTS, Muscle::BACK],
+                        WorkoutType::CALISTHENICS
+                    ),
+                    Excercise::new(
+                        "Incline Bench Press".to_string(),
+                        100,
+                        "".to_string(),
+                        3,
+                        60,
+                        8,
+                        WeightUnit::KILOGRAMS,
+                        vec![Muscle::CHEST, Muscle::FRONT_DELTS],
+                        WorkoutType::WEIGHTS
+                    ),
+                ]
+            }
+        )
+    }
+}

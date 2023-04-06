@@ -1,4 +1,4 @@
-import { Muscle, WeightUnit } from "@/types/workouts.ts";
+import { Muscle, WeightUnit, WorkoutType } from "@/types/workouts.ts";
 
 export default function Button_send() {
   async function ask_for_workout() {
@@ -11,12 +11,10 @@ export default function Button_send() {
       rest: 15,
       media_url: "",
       used_muscles: [Muscle.CHEST, Muscle.TRICEPS],
+      workout_type: WorkoutType.WEIGHTS,
     };
 
     const json_excersise = JSON.stringify(excersise);
-
-    console.log({ excersise });
-    console.log({ json_excersise });
 
     const res = await fetch("http://127.0.0.1:8080/workout", {
       method: "POST",

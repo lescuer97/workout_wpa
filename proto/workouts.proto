@@ -26,6 +26,12 @@ enum WeightUnit {
     POUNDS = 1;
 }
 
+enum WorkoutType {
+    CALISTHENICS = 0;
+    WEIGHTS = 1;
+    MACHINE = 2;
+}
+
 message Excercise {
     string name = 1;
     int32 weight = 2;
@@ -35,6 +41,7 @@ message Excercise {
     WeightUnit weight_unit = 6;
     int32 reps = 7;
     repeated Muscle used_muscles = 8;
+    WorkoutType workout_type = 9;
 }
 
 
