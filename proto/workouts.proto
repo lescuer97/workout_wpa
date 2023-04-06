@@ -21,9 +21,15 @@ enum Muscle {
     SIDE_DELTS = 16;
     REAR_DELTS = 17;
 }
-enum WeightType {
+enum WeightUnit {
     KILOGRAMS = 0;
     POUNDS = 1;
+}
+
+enum WorkoutType {
+    CALISTHENICS = 0;
+    WEIGHTS = 1;
+    MACHINE = 2;
 }
 
 message Excercise {
@@ -32,7 +38,10 @@ message Excercise {
     int32 sets = 3;
     string media_url = 4;
     int32 rest  = 5;
-    WeightType weight_unit = 6;
+    WeightUnit weight_unit = 6;
+    int32 reps = 7;
+    repeated Muscle used_muscles = 8;
+    WorkoutType workout_type = 9;
 }
 
 
@@ -41,40 +50,3 @@ message Excercise {
 message WorkoutList {
     repeated Excercise workouts = 1;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

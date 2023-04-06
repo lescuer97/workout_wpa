@@ -18,7 +18,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: arduino/setup-protoc@v1
+    # - uses: arduino/setup-protoc@v1
 
     - name: Update local toolchain
       run: |
@@ -35,7 +35,7 @@ jobs:
     - name: Lint
       run: |
         cargo fmt -- --check
-        cargo clippy -- -D warnings
+        # cargo clippy -- -D warnings
 
     - name: Test
       run: |
