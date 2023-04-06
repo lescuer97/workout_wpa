@@ -28,16 +28,11 @@ pub enum Muscle {
     REAR_DELTS,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub enum WeightUnit {
+    #[default]
     KILOGRAMS,
     POUNDS,
-}
-
-impl Default for WeightUnit {
-    fn default() -> Self {
-        WeightUnit::KILOGRAMS
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

@@ -1,9 +1,4 @@
-use actix_web::{
-    http::header,
-    post,
-    web::{self},
-    HttpResponse, Responder,
-};
+use actix_web::{http::header, post, web, HttpResponse, Responder};
 
 use server::{self, Excercise};
 
