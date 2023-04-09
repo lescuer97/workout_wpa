@@ -92,6 +92,8 @@
     "https://deno.land/x/esbuild_deno_loader@0.5.2/src/shared.ts": "b64749cd8c0f6252a11498bd8758ef1220003e46b2c9b68e16da63fd7e92b13a",
     "https://deno.land/x/escalade@v3.0.3/sync.ts": "493bc66563292c5c10c4a75a467a5933f24dad67d74b0f5a87e7b988fe97c104",
     "https://deno.land/x/fresh@1.1.4/dev.ts": "a66c7d64be35bcd6a8e12eec9c27ae335044c70363a241f2e36ee776db468622",
+    "https://deno.land/x/fresh@1.1.4/plugins/twind.ts": "c0570d6010e29ba24ee5f43b9d3f1fe735f7fac76d9a3e680c9896373d669876",
+    "https://deno.land/x/fresh@1.1.4/plugins/twind/shared.ts": "023e0ffcd66668753b5049edab0de46e6d66194fb6026c679034b9bbf04ad6f3",
     "https://deno.land/x/fresh@1.1.4/runtime.ts": "b02ec1e2e32cf73a33d262b7c9dcab9468ce16cd89fd424196c71003698a4ab0",
     "https://deno.land/x/fresh@1.1.4/server.ts": "f379c9aad24471a71e58fb887fa57e5cc27ad9df035987eb260541c78df38e84",
     "https://deno.land/x/fresh@1.1.4/src/dev/deps.ts": "de5470828c17839c0b52c328e6709f3477740b9800deaf724d6569b64b1d3872",
@@ -163,7 +165,18 @@
     "https://esm.sh/v100/preact@10.11.0/hooks/src/index.d.ts": "5c29febb624fc25d71cb0e125848c9b711e233337a08f7eacfade38fd4c14cc3",
     "https://esm.sh/v100/preact@10.11.0/jsx-runtime/src/index.d.ts": "e153460ed2b3fe2ad8b93696ecd48fbf73cd628b0b0ea6692b71804a3af69dfd",
     "https://esm.sh/v100/preact@10.11.0/src/index.d.ts": "1a5c331227be54be6515b0c92a469d352834fa413963ae84a39a05a3177111f6",
-    "https://esm.sh/v100/preact@10.11.0/src/jsx.d.ts": "c423715fd7992b2e1446fea11d2d04e8adbd66c1edca1ce5e85f90e0d26a2eb2"
+    "https://esm.sh/v100/preact@10.11.0/src/jsx.d.ts": "c423715fd7992b2e1446fea11d2d04e8adbd66c1edca1ce5e85f90e0d26a2eb2",
+    "https://esm.sh/v98/csstype@3.1.1/index.d.ts": "1c29793071152b207c01ea1954e343be9a44d85234447b2b236acae9e709a383",
+    "https://esm.sh/v98/style-vendorizer@2.2.3/deno/style-vendorizer.js": "bacdb96f034bbdae11a8d90427a6d49270d28d5939f02dbf0e7d0e52491ff9e3",
+    "https://esm.sh/v98/twind@0.16.17": "c223bb38ced15d09e850235b02f6d5ce1d23889942fb676d6ab82f592316f520",
+    "https://esm.sh/v98/twind@0.16.17/colors": "50c2db5b0bbec56111edd7bbc8aef65be145758791f64398fd1bbc85cd24117e",
+    "https://esm.sh/v98/twind@0.16.17/colors/colors.d.ts": "5d718e9e958b108054073182c3a6b3a8c8352b4c9b2c520a15bdb56bac56868f",
+    "https://esm.sh/v98/twind@0.16.17/deno/colors.js": "e3e6b2135ee371978b66011b130019c2a70be71c7743a5ef2dc657f7bbc16edd",
+    "https://esm.sh/v98/twind@0.16.17/deno/sheets.js": "f75586c3a778278f99ca9e6761e8c8a2089c66d6a503bb25e3bba38597fe1e30",
+    "https://esm.sh/v98/twind@0.16.17/deno/twind.js": "9774a4f1ddf2c1655f38040aa9c82ad921055b92bb8a62f5251625264e40ce02",
+    "https://esm.sh/v98/twind@0.16.17/sheets": "58535757e0fbc01b9d6122cbd8e9bd02faa793f5fb5aef9619fb8d8fd0469bde",
+    "https://esm.sh/v98/twind@0.16.17/sheets/sheets.d.ts": "ac65f165be285376a1625e01252201a4c9e4cebe0078a5b2e47ca3e5fde76489",
+    "https://esm.sh/v98/twind@0.16.17/twind.d.ts": "795f4921b74adee8a90dfeb4e71e524f83b1822a307692e2c36874120629ebd9"
   },
   "npm": {
     "specifiers": {
