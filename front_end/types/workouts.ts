@@ -16,34 +16,34 @@ declare global {
   };
 }
 
-export enum WorkoutType {
-    CALISTHENICS = "CALISTHENICS",
-    WEIGHTS = "WEIGHTS",
-    MACHINE = "MACHINE",
-}
+export const WorkoutType = {
+  CALISTHENICS: "CALISTHENICS",
+  WEIGHTS: "WEIGHTS",
+  MACHINE: "MACHINE",
+} as const;
 
-export enum WeightUnit {
-  KILOGRAMS = "KILOGRAMS",
-  POUNDS = "POUNDS",
-}
+export const WeightUnit = {
+  KILOGRAMS: "KILOGRAMS",
+  POUNDS: "POUNDS",
+} as const;
 
-export enum Muscle {
-  BICEPS = "BICEPS",
-  TRICEPS = "TRICEPS",
-  CHEST = "CHEST",
-  BACK = "BACK",
-  LEGS = "LEGS",
-  LOWER_BACK = "LOWER_BACK",
-  ABS = "ABS",
-  LAT = "LAT",
-  TRAPS = "TRAPS",
-  QUADS = "QUADS",
-  HAMSTRINGS = "HAMSTRINGS",
-  CALVES = "CALVES",
-  GLUTES = "GLUTES",
-  FOREARMS = "FOREARMS",
-  NECK = "NECK",
-  FRONT_DELTS = "FRONT_DELTS",
-  SIDE_DELTS = "SIDE_DELTS",
-  REAR_DELTS = "REAR_DELTS",
-}
+export const Muscle = {
+  BICEPS: "BICEPS",
+  TRICEPS: "TRICEPS",
+  CHEST: "CHEST",
+  BACK: "BACK",
+  LEGS: "LEGS",
+  LOWER_BACK: "LOWER_BACK",
+  ABS: "ABS",
+  LAT: "LAT",
+  TRAPS: "TRAPS",
+  QUADS: "QUADS",
+  HAMSTRINGS: "HAMSTRINGS",
+  CALVES: "CALVES",
+  GLUTES: "GLUTES",
+  FOREARMS: "FOREARMS",
+  NECK: "NECK",
+  FRONT_DELTS: "FRONT_DELTS",
+  SIDE_DELTS: "SIDE_DELTS",
+  REAR_DELTS: "REAR_DELTS",
+} as const;

@@ -1,14 +1,13 @@
-use actix_web::{http::header, post, web, HttpResponse, Responder};
-
+use actix_web::{http::header, post, Error, HttpRequest, HttpResponse};
+use serde_qs as qs;
 use server::{self, Excercise};
 
 #[post("/workout")]
-pub async fn post_workout(item: web::Json<Excercise>) -> impl Responder {
-    println!("Got a request: {:?}", &item);
+pub async fn post_workout(req: HttpRequest) -> Result<HttpResponse, Error> {
+    let config = qs::Config::new(25, false);
+    let ex = config.deserialize_str::<Excercise>(req.query_string())?;
 
-    // let body = req.
-
-    HttpResponse::Ok()
+    return Ok(HttpResponse::Ok()
         .insert_header(header::ContentType(mime::APPLICATION_JSON))
-        .json(item.0)
+        .json(ex));
 }
