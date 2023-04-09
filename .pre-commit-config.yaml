@@ -12,3 +12,10 @@ repos:
     -   id: check-yaml
     -   id: end-of-file-fixer
     -   id: trailing-whitespace
+
+-   repo: https://github.com/nozaq/pre-commit-deno
+    rev: 0.1.0  # Use the ref you want to point at
+    hooks:
+    -   id: deno-fmt
+    -   id: deno-lint
+    -   id: deno-test
