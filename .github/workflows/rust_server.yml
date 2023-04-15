@@ -33,6 +33,8 @@ jobs:
         cargo clippy --version
 
     - name: Lint
+      env: # Or as an environment variable
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
       run: |
         cargo fmt -- --check
         # cargo clippy -- -D warnings
