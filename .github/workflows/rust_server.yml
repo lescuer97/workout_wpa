@@ -42,6 +42,7 @@ jobs:
       env: # Or as an environment variable
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
       run: |
+        echo DATABASE_URL="$DATABASE_URL" >> .env
         cargo check
         cargo test --all
 
