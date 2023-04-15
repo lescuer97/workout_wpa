@@ -1,5 +1,8 @@
 use actix_cors::Cors;
 use actix_web::{error, middleware, web, App, HttpRequest, HttpResponse, HttpServer};
+use sqlx::postgres::PgPool;
+use sqlx::{Pool, Postgres};
+use std::env;
 
 mod routes;
 use routes::workout::post_workout;
@@ -20,15 +23,28 @@ fn json_error_handler(err: error::JsonPayloadError, _req: &HttpRequest) -> error
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    dotenv::dotenv().ok();
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
-    HttpServer::new(|| {
+
+    let database_env_var: String = match env::var("DATABASE_URL") {
+        Ok(variable) => variable,
+        Err(_) => {
+            println!("there is no DATABASE_URL variable set");
+            String::from("")
+        }
+    };
+
+    let pool: Pool<Postgres> = PgPool::connect(&database_env_var).await.unwrap();
+
+    HttpServer::new(move || {
         let cors = Cors::permissive();
 
         App::new()
+            .app_data(web::Data::new(pool.clone()))
+            .app_data(web::JsonConfig::default().error_handler(json_error_handler))
             .wrap(middleware::Logger::default())
             .wrap(cors)
             .service(post_workout)
-            .app_data(web::JsonConfig::default().error_handler(json_error_handler))
     })
     .bind(("127.0.0.1", 8080))?
     .run()
@@ -36,20 +52,6 @@ async fn main() -> std::io::Result<()> {
 
     Ok(())
 }
-
-// #[actix_web::main]
-// async fn main() -> std::io::Result<()> {
-//     HttpServer::new(|| {
-//         let cors = Cors::permissive();
-//
-//         App::new()
-//             .wrap(cors)
-//             .service(post_workout).service(hello)
-//     })
-//     .bind(("127.0.0.1", 8080)).unwrap().run().await;
-//
-// }
-//
 
 #[cfg(test)]
 mod tests {
