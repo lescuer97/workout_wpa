@@ -42,6 +42,7 @@ jobs:
 
     - name: Test
       run: |
+        echo DATABASE_URL=${{ secrets.DATABASE_URL }} >> .env
         cargo check
         cargo test --all
 
