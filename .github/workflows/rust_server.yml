@@ -34,15 +34,15 @@ jobs:
         cargo clippy --version
 
     - name: Lint
-      env: # Or as an environment variable
-        DATABASE_URL: ${{ secrets.DATABASE_URL }}
       run: |
         cargo fmt -- --check
         # cargo clippy -- -D warnings
 
     - name: Test
+      env: # Or as an environment variable
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
       run: |
-        echo DATABASE_URL=${{ secrets.DATABASE_URL }} >> .env
+        echo DATABASE_URL="%DATABASE_URL%" >> .env
         cargo check
         cargo test --all
 
