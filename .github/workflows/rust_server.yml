@@ -18,6 +18,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - uses: Swatinem/rust-cache@v2
     # - uses: arduino/setup-protoc@v1
 
     - name: Update local toolchain
@@ -38,7 +39,10 @@ jobs:
         # cargo clippy -- -D warnings
 
     - name: Test
+      env: # Or as an environment variable
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
       run: |
+        echo DATABASE_URL="$DATABASE_URL" >> .env
         cargo check
         cargo test --all
 

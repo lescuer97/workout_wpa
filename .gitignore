@@ -2,5 +2,4 @@ node_modules/
 target/
 front_end/generated_types
 front_end/generatedTypes
-
-
+.env
