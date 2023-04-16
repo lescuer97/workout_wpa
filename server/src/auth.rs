@@ -1,5 +1,4 @@
-use actix_web::web::Data;
-use anyhow::{bail, Result};
+use actix_web::{web::Data, Error};
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
@@ -12,6 +11,11 @@ use sqlx::{
 };
 use uuid::Uuid;
 
+use crate::{
+    db::{query_user_with_email, register_user_query},
+    error::UserError,
+};
+
 #[derive(Debug, Serialize, Deserialize, Clone, FromRow)]
 pub struct RegisterUserData {
     pub email: String,
@@ -23,22 +27,12 @@ pub struct RegisterUserData {
     pub totp: Option<bool>,
 }
 
-#[derive(Debug, thiserror::Error)]
-pub enum UserError {
-    #[error("Password Doesn't match")]
-    PasswordDontMatch,
-    #[error("{0}")]
-    DBError(#[from] sqlx::Error),
-    #[error("Error wasn't expected")]
-    UnexpectedError,
-}
-
 impl RegisterUserData {
-    fn set_default_user(&mut self) -> Result<()> {
+    fn set_default_user(&mut self) -> Result<(), UserError> {
         let same_password = self.check_same_password();
 
         if !same_password {
-            bail!("passwords are not the same");
+            return Err(UserError::PasswordDontMatch);
         }
         let uuid = Uuid::new_v4();
 
@@ -51,44 +45,18 @@ impl RegisterUserData {
         Ok(())
     }
 
-    pub async fn register(&mut self, pool: Data<Pool<Postgres>>) -> Result<()> {
+    pub async fn register(&mut self, pool: Data<Pool<Postgres>>) -> Result<(), UserError> {
         self.set_default_user()?;
 
-        let mut conn = pool.acquire().await.unwrap();
+        register_user_query(self.clone(), pool).await?;
 
-        if let Some(uuid) = self.id {
-            match sqlx::query_as!(
-                RegisterUserData,
-                r#"
-    INSERT INTO users ( email, password,id, u2f, totp, rol)
-    VALUES ( $1, $2, $3, $4, $5, $6::user_role[])
-            "#,
-                self.email,
-                self.password,
-                uuid,
-                self.u2f,
-                self.totp,
-                self.rol.to_owned() as _,
-            )
-            .execute(&mut conn)
-            .await
-            {
-                Ok(user) => user,
-                Err(error) => {
-                    bail!(UserError::DBError(error))
-                }
-            };
-
-            Ok(())
-        } else {
-            bail!(UserError::UnexpectedError)
-        }
+        return Ok(());
     }
 
     fn check_same_password(&self) -> bool {
         self.password == self.password_repeat
     }
-    fn hash_password(&self) -> Result<String> {
+    fn hash_password(&self) -> Result<String, UserError> {
         let salt = SaltString::generate(&mut OsRng);
 
         // Argon2 with default params (Argon2id v19)
@@ -97,12 +65,12 @@ impl RegisterUserData {
 
         let password_hash = match argon2.hash_password(password_bytes, &salt) {
             Ok(hashed_password) => hashed_password.to_string(),
-            Err(_) => bail!("There was a problem hashing the password"),
+            Err(_) => return Err(UserError::HashingError),
         };
 
         let parsed_hash = match PasswordHash::new(&password_hash) {
             Ok(hashed_value) => hashed_value,
-            Err(_) => bail!("There was a getting the hashed password"),
+            Err(_) => return Err(UserError::HashingError),
         };
 
         Ok(parsed_hash.to_string())
@@ -113,6 +81,52 @@ impl RegisterUserData {
 pub struct LoginData {
     pub email: String,
     pub password: Option<String>,
+}
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LoginDataToSend {
+    pub email: String,
+    pub password: Option<String>,
+    pub u2f: bool,
+    pub totp: bool,
+    pub id: Uuid,
+}
+
+impl LoginData {
+    pub async fn login(&self, pool: Data<Pool<Postgres>>) -> Result<LoginDataToSend, UserError> {
+        let user_query: LoginDataToSend =
+            query_user_with_email(self.email.to_owned(), pool).await?;
+
+        self.check_password_matches_database(user_query.to_owned())?;
+
+        Ok(LoginDataToSend {
+            email: user_query.email,
+            password: None,
+            u2f: user_query.u2f,
+            totp: user_query.totp,
+            id: user_query.id,
+        })
+    }
+    fn check_password_matches_database(
+        &self,
+        user_query: LoginDataToSend,
+    ) -> Result<(), UserError> {
+        let password_hash_string = user_query.password.unwrap();
+
+        let parsed_hash = match PasswordHash::new(password_hash_string.as_str()) {
+            Ok(hashed_value) => hashed_value,
+            Err(_) => return Err(UserError::HashingError),
+        };
+
+        let password_match = Argon2::default()
+            .verify_password(self.password.clone().unwrap().as_bytes(), &parsed_hash)
+            .is_ok();
+
+        if password_match {
+            Ok(())
+        } else {
+            return Err(UserError::PasswordDontMatch);
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Type)]

@@ -1,5 +1,6 @@
 use actix_cors::Cors;
 use actix_web::{error, middleware, web, App, HttpRequest, HttpResponse, HttpServer};
+use routes::auth::register_user;
 use sqlx::postgres::PgPool;
 use sqlx::{Pool, Postgres};
 use std::env;
@@ -45,6 +46,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Logger::default())
             .wrap(cors)
             .service(post_workout)
+            .service(register_user)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
