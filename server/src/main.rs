@@ -10,6 +10,7 @@ use routes::workout::post_workout;
 
 fn json_error_handler(err: error::JsonPayloadError, _req: &HttpRequest) -> error::Error {
     use actix_web::error::JsonPayloadError;
+    println!("error: {:?}", err);
 
     let detail = err.to_string();
     let resp = match &err {
