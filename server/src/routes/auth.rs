@@ -3,22 +3,6 @@ use serde_qs;
 use server::{auth::RegisterUserData, error::UserError, server_messages::ResponseBodyMessage};
 use sqlx::{postgres::Postgres, Pool};
 
-fn check_if_error_is_duplicate_key(err: UserError) -> bool {
-    match err {
-        UserError::DBError(error) => {
-            if let Some(error_db) = error.as_database_error() {
-                if let Some(db_err_code) = error_db.code() {
-                    if db_err_code == "23505" {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-        _ => false,
-    }
-}
-
 #[post("/auth/register")]
 pub async fn register_user(
     req: HttpRequest,
@@ -64,7 +48,6 @@ pub async fn register_user(
 mod tests {
     use crate::register_user;
 
-    use actix_web::body::MessageBody;
     use actix_web::{http::StatusCode, test, web, App};
     // use chrono::{DateTime, Duration, Utc};
     use dotenv;
