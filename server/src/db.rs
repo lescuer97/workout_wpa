@@ -1,7 +1,6 @@
 use crate::auth::{LoginDataToSend, RegisterUserData};
 use crate::error::UserError;
 use actix_web::web::Data;
-use anyhow::{bail, Result};
 use sqlx;
 use sqlx::{Pool, Postgres};
 

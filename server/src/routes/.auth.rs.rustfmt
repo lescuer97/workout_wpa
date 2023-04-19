@@ -132,7 +132,7 @@ mod tests {
             // .header(header::CONTENT_TYPE, "application/json")
             .to_request();
 
-        #[derive(Deserialize)]
+        #[derive( Deserialize)]
         struct ErrorFromJson {
             pub status: String,
             pub data: String,

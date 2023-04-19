@@ -10,6 +10,9 @@ pub enum UserError {
     UnexpectedError,
     #[error("There was an error hashing the password")]
     HashingError,
+
+    #[error("{0}")]
+    SerdeQsError(#[from] serde_qs::Error),
 }
 /// Actix Web uses `ResponseError` for conversion of errors to a response
 impl ResponseError for UserError {
@@ -20,7 +23,21 @@ impl ResponseError for UserError {
                 HttpResponse::Forbidden().finish()
             }
 
-            UserError::DBError(_) => {
+            UserError::DBError(error) => {
+                let error_db = error.as_database_error();
+                if let Some(err) = error_db {
+                    println!("Error message: {:?}", err.message());
+                    println!("Error Code: {:?}", err.code());
+                }
+                // println!(" Error {:?}", error.as_database_error());
+                // match error {
+                //     sqlx::Error::RowNotFound => {
+                //         return HttpResponse::NotFound().finish();
+                //     }
+                //     _ => {
+                //         return HttpResponse::InternalServerError().finish();
+                //     }
+                // }
                 println!("do some stuff related to CustomTwo error");
                 HttpResponse::UnprocessableEntity().finish()
             }
