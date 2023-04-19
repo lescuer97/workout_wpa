@@ -7,6 +7,9 @@ use serde::{Deserialize, Serialize};
 //     include!(concat!(env!("OUT_DIR"), "/workouts.rs"));
 // }
 pub mod auth;
+pub mod db;
+pub mod error;
+pub mod server_messages;
 
 #[derive(Clone, PartialEq, Serialize, Debug, Deserialize)]
 pub enum Muscle {
