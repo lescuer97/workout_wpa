@@ -1,3 +1,4 @@
+#![feature(try_trait_v2)]
 use actix_cors::Cors;
 use actix_web::{error, middleware, web, App, HttpRequest, HttpResponse, HttpServer};
 use routes::auth::register_user;

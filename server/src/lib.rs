@@ -1,3 +1,4 @@
+#![feature(try_trait_v2)]
 use serde::{Deserialize, Serialize};
 #[allow(non_camel_case_types)]
 // use workouts::workouts_server::{Workouts, WorkoutsServer};
@@ -10,6 +11,7 @@ pub mod auth;
 pub mod db;
 pub mod error;
 pub mod server_messages;
+pub mod utils;
 
 #[derive(Clone, PartialEq, Serialize, Debug, Deserialize)]
 pub enum Muscle {

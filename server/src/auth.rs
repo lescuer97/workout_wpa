@@ -4,12 +4,17 @@ use argon2::{
     Argon2,
 };
 
+use actix_web::HttpRequest;
+use chrono::{DateTime, Duration, Utc};
+use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation};
 use serde::{Deserialize, Serialize};
 use sqlx::{
     postgres::{PgHasArrayType, PgTypeInfo, Postgres},
     FromRow, Pool, Type,
 };
 use uuid::Uuid;
+
+use crate::{error::AuthError, utils::get_env_variable};
 
 use crate::{
     db::{query_user_with_email, register_user_query},
@@ -110,22 +115,97 @@ impl LoginData {
         &self,
         user_query: LoginDataToSend,
     ) -> Result<(), UserError> {
-        let password_hash_string = user_query.password.unwrap();
+        let password_hash_string = user_query.password;
 
-        let parsed_hash = match PasswordHash::new(password_hash_string.as_str()) {
-            Ok(hashed_value) => hashed_value,
-            Err(_) => return Err(UserError::HashingError),
+        if let Some(password_hash_string) = password_hash_string {
+            let parsed_hash = match PasswordHash::new(password_hash_string.as_str()) {
+                Ok(hashed_value) => hashed_value,
+                Err(_) => return Err(UserError::HashingError),
+            };
+
+            if let Some(password) = self.password.clone() {
+                let password_match = Argon2::default()
+                    .verify_password(password.as_bytes(), &parsed_hash)
+                    .is_ok();
+
+                if password_match {
+                    Ok(())
+                } else {
+                    return Err(UserError::PasswordDontMatch);
+                }
+            } else {
+                return Err(UserError::UnexpectedError);
+            }
+        } else {
+            return Err(UserError::UnexpectedError);
+        }
+    }
+}
+
+pub const AUTHENTIFIED_COOKIE: &str = "auth";
+pub const COOKIE_FOR_TOTP_AUTH: &str = "auth-2fa";
+pub const SECRET_FOR_TOTP_AUTH: &str = "totp-secret";
+
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[allow(non_snake_case)]
+pub struct JWTToken {
+    pub sub: String,
+    pub exp: usize,
+}
+impl JWTToken {
+    pub fn create_jwt_token(value: String, duration: DateTime<Utc>) -> Result<String, AuthError> {
+        let secret_jwt = get_env_variable("SECRET_FOR_JWT");
+        let token_setup = JWTToken {
+            sub: value.to_owned(),
+            exp: duration.timestamp() as usize,
         };
 
-        let password_match = Argon2::default()
-            .verify_password(self.password.clone().unwrap().as_bytes(), &parsed_hash)
-            .is_ok();
+        let token: String = encode(
+            &Header::default(),
+            &token_setup,
+            &EncodingKey::from_secret(secret_jwt.as_ref()),
+        )?;
+        Ok(token)
+    }
+    pub fn validate_jwt_token_from_cookie(
+        request: HttpRequest,
+        name_of_token: &str,
+    ) -> Result<TokenData<JWTToken>, AuthError> {
+        let auth_token = match request.cookie(name_of_token) {
+            Some(token) => token.value().to_string(),
+            None => return Err(AuthError::NoJWTToken),
+        };
 
-        if password_match {
-            Ok(())
-        } else {
-            return Err(UserError::PasswordDontMatch);
-        }
+        let secret_jwt = get_env_variable("SECRET_FOR_JWT");
+
+        let contents = match decode::<JWTToken>(
+            auth_token.as_str(),
+            &DecodingKey::from_secret(secret_jwt.as_ref()),
+            &Validation::default(),
+        ) {
+            Ok(token) => token,
+            Err(_) => return Err(AuthError::InvalidToken),
+        };
+
+        Ok(contents)
+    }
+    pub fn logout_jwt_token() -> Result<String, AuthError> {
+        let expiration_time = Utc::now() - Duration::seconds(1);
+
+        let token_setup = JWTToken {
+            sub: "".to_owned(),
+            exp: expiration_time.timestamp() as usize,
+        };
+
+        let secret_jwt = get_env_variable("SECRET_FOR_JWT");
+
+        let token: String = encode(
+            &Header::default(),
+            &token_setup,
+            &EncodingKey::from_secret(secret_jwt.as_ref()),
+        )?;
+
+        Ok(token)
     }
 }
 
@@ -142,5 +222,59 @@ pub enum UserRole {
 impl PgHasArrayType for UserRole {
     fn array_type_info() -> PgTypeInfo {
         PgTypeInfo::with_name("_user_role")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        auth::{JWTToken, AUTHENTIFIED_COOKIE},
+        utils::create_jwt_and_cookie,
+    };
+    use actix_web::test::TestRequest;
+    use chrono::{DateTime, Duration, Utc};
+
+    use dotenv;
+    #[test]
+    fn create_jwt_token_success() {
+        dotenv::dotenv().ok();
+        let email: String = String::from("test@test.com");
+        let expiration_time: DateTime<Utc> = Utc::now() + Duration::days(30);
+
+        let token = JWTToken::create_jwt_token(email, expiration_time).unwrap();
+
+        assert_eq!(token.is_empty(), false);
+    }
+
+    #[actix_web::test]
+    async fn validate_jwt_token_success() {
+        dotenv::dotenv().ok();
+
+        let email: String = String::from("test@test.com");
+        let expiration_time: DateTime<Utc> = Utc::now() + Duration::days(30);
+
+        let jwt_cookie =
+            create_jwt_and_cookie(email.to_owned(), AUTHENTIFIED_COOKIE, expiration_time).unwrap();
+
+        let req = TestRequest::default().cookie(jwt_cookie).to_http_request();
+
+        let token = JWTToken::validate_jwt_token_from_cookie(req, AUTHENTIFIED_COOKIE).unwrap();
+
+        assert_eq!(true, !token.claims.sub.is_empty());
+    }
+    #[actix_web::test]
+    async fn invalid_jwt_token() {
+        dotenv::dotenv().ok();
+
+        let email: String = String::from("test@test.com");
+        let expiration_time: DateTime<Utc> = Utc::now() - Duration::days(30);
+
+        let jwt_cookie =
+            create_jwt_and_cookie(email.to_owned(), AUTHENTIFIED_COOKIE, expiration_time).unwrap();
+
+        let req = TestRequest::default().cookie(jwt_cookie).to_http_request();
+
+        let token = JWTToken::validate_jwt_token_from_cookie(req, AUTHENTIFIED_COOKIE);
+        assert_eq!(true, token.is_err());
     }
 }

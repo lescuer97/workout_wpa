@@ -1,42 +1,41 @@
-use actix_web::{post, web, HttpRequest, HttpResponse};
+use actix_web::{get, post, web, Error, HttpRequest, HttpResponse};
+use chrono::{DateTime, Duration, Utc};
 use serde_qs;
-use server::{auth::RegisterUserData, error::UserError, server_messages::ResponseBodyMessage};
+use server::{
+    auth::{JWTToken, LoginData, RegisterUserData, AUTHENTIFIED_COOKIE, COOKIE_FOR_TOTP_AUTH},
+    error::{ErrorForResponse, UserError},
+    server_messages::ResponseBodyMessage,
+    utils::{create_jwt_and_cookie, make_removal_cookie},
+};
 use sqlx::{postgres::Postgres, Pool};
 
 #[post("/auth/register")]
 pub async fn register_user(
     req: HttpRequest,
     pool: web::Data<Pool<Postgres>>,
-) -> Result<HttpResponse, UserError> {
+) -> Result<HttpResponse, Error> {
     let config = serde_qs::Config::new(25, false);
+    // let mut user = config.deserialize_str::<RegisterUserData>(req.query_string())?;
     let mut user = config.deserialize_str::<RegisterUserData>(req.query_string())?;
 
     match user.register(pool).await {
         Ok(()) => (),
-        Err(err) => {
-            match err {
-                UserError::DBError(error) => {
-                    if let Some(error_db) = error.as_database_error() {
-                        if let Some(db_err_code) = error_db.code() {
-                            if db_err_code == "23505" {
-                                let fail_message =
-                                    ResponseBodyMessage::fail_message("User already exists");
-                                return Ok(HttpResponse::UnprocessableEntity().json(fail_message));
-                            }
-                        } else {
-                            return Ok(HttpResponse::UnprocessableEntity().finish());
+        Err(err) => match err {
+            UserError::DBError(error) => {
+                if let Some(error_db) = error.as_database_error() {
+                    if let Some(db_err_code) = error_db.code() {
+                        if db_err_code == "23505" {
+                            let fail_message =
+                                ResponseBodyMessage::fail_message("User already exists");
+                            return Ok(HttpResponse::UnprocessableEntity().json(fail_message));
                         }
+                    } else {
+                        return Ok(HttpResponse::UnprocessableEntity().finish());
                     }
                 }
-                _ => return Err(err),
             }
-            // if check_if_error_is_duplicate_key(error) {
-            //     let fail_message = ResponseBodyMessage::fail_message("User already exists");
-            //     return Ok(HttpResponse::UnprocessableEntity().json(fail_message));
-            // } else {
-            //     return Err(error)
-            // }
-        }
+            _ => return Err(UserError::UnexpectedError.into()),
+        },
     };
 
     let success_registering = ResponseBodyMessage::success_message("Registed successfuly");
@@ -44,9 +43,80 @@ pub async fn register_user(
     return Ok(HttpResponse::Ok().json(success_registering));
 }
 
+#[post("/auth/login")]
+pub async fn login_function(
+    req: HttpRequest,
+    pool: web::Data<Pool<Postgres>>,
+) -> Result<HttpResponse, Error> {
+    let config = serde_qs::Config::new(25, false);
+    // let mut item = config.deserialize_str::<LoginData>(req.query_string())?;
+    let item = config.deserialize_str::<LoginData>(req.query_string())?;
+
+    // used in case that the client calls when already signed in
+    match JWTToken::validate_jwt_token_from_cookie(req, AUTHENTIFIED_COOKIE) {
+        Ok(_) => {
+            let already_logedin_value = ResponseBodyMessage::success_message("Already Logged in");
+
+            return Ok(HttpResponse::Accepted().json(already_logedin_value));
+        }
+        Err(_) => println!("No jwt token"),
+    }
+
+    let login_data = item.login(pool).await?;
+
+    if login_data.totp || login_data.u2f {
+        let success_registering = ResponseBodyMessage::success_message("Two factor auth needed");
+
+        let five_min_expiration: DateTime<Utc> = Utc::now() + Duration::minutes(5);
+
+        let jwt_cookie = create_jwt_and_cookie(
+            login_data.id.to_string(),
+            COOKIE_FOR_TOTP_AUTH,
+            five_min_expiration,
+        )?;
+
+        Ok(HttpResponse::Ok()
+            .cookie(jwt_cookie)
+            .json(success_registering))
+    } else {
+        let expiration_time: DateTime<Utc> = Utc::now() + Duration::days(30);
+
+        let jwt_cookie = match create_jwt_and_cookie(
+            login_data.id.to_string(),
+            AUTHENTIFIED_COOKIE,
+            expiration_time,
+        ) {
+            Ok(cookie) => cookie,
+            Err(_) => return Ok(HttpResponse::InternalServerError().finish()),
+        };
+
+        let success_registering = ResponseBodyMessage::success_message(login_data);
+
+        Ok(HttpResponse::Ok()
+            .cookie(jwt_cookie)
+            .json(success_registering))
+    }
+}
+#[get("/auth/checklogin")]
+pub async fn check_login(req: HttpRequest) -> HttpResponse {
+    match JWTToken::validate_jwt_token_from_cookie(req, AUTHENTIFIED_COOKIE) {
+        Ok(_) => return HttpResponse::Ok().finish(),
+        Err(_) => {
+            let jwt_cookie = match make_removal_cookie(AUTHENTIFIED_COOKIE) {
+                Ok(cookie) => cookie,
+                Err(_) => return HttpResponse::InternalServerError().finish(),
+            };
+            return HttpResponse::UnprocessableEntity()
+                .cookie(jwt_cookie)
+                .finish();
+        }
+    };
+}
+
 #[cfg(test)]
 mod tests {
     use crate::register_user;
+    use crate::routes::auth::login_function;
 
     use actix_web::{http::StatusCode, test, web, App};
     // use chrono::{DateTime, Duration, Utc};
@@ -127,135 +197,128 @@ mod tests {
         assert_eq!(res.data, "User already exists");
     }
 
-    // #[actix_web::test]
-    // async fn login_user() {
-    //     dotenv::dotenv().ok();
-    //
-    //     let pool = PgPool::connect(&env::var("DATABASE_URL").unwrap())
-    //         .await
-    //         .unwrap();
-    //
-    //     let app = test::init_service(
-    //         App::new().app_data(web::Data::new(pool.clone())).service(
-    //             web::resource("/auth/login")
-    //                 .route(web::route().guard(guard::Options()).to(options_call))
-    //                 .route(web::post().to(login_function)),
-    //         ),
-    //     )
-    //     .await;
-    //
-    //     let data = json!({
-    //         "email": "test22s@test.com",
-    //         "password": "&#8V*n%!WL5^544#Z7xr",
-    //     });
-    //
-    //     // Create request object
-    //     let req = test::TestRequest::post()
-    //         .set_json(data)
-    //         .uri("/auth/login")
-    //         .to_request();
-    //
-    //     // Execute application
-    //     let res = test::call_service(&app, req).await;
-    //     assert_eq!(res.status(), StatusCode::OK);
-    // }
+    #[actix_web::test]
+    async fn login_user() {
+        dotenv::dotenv().ok();
 
-    // #[actix_web::test]
-    // async fn totp_create_secret_test() {
-    //     dotenv::dotenv().ok();
-    //
-    //     let pool = PgPool::connect(&env::var("DATABASE_URL").unwrap())
-    //         .await
-    //         .unwrap();
-    //
-    //     let app = test::init_service(
-    //         App::new()
-    //             .app_data(web::Data::new(pool.clone()))
-    //             .service(totp_create_send_secret),
-    //     )
-    //     .await;
-    //
-    //     // Create request object
-    //     let req = test::TestRequest::post()
-    //         .uri("/auth/totp/create")
-    //         .to_request();
-    //
-    //     // Execute application
-    //     let res = test::call_service(&app, req).await;
-    //     println!("res {:?}", res);
-    //     assert_eq!(res.status(), StatusCode::OK);
-    // }
+        let pool = PgPool::connect(&env::var("DATABASE_URL").unwrap())
+            .await
+            .unwrap();
 
-    // #[actix_web::test]
-    // async fn totp_validate_create_success() {
-    //     dotenv::dotenv().ok();
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(pool.clone()))
+                .service(login_function),
+        )
+        .await;
+
+        let form_data = "email=test22s%40test.com&password=%26%238V%2An%25%21WL5%5E544%23Z7xr";
+        let uri = format!("/auth/login?{}", form_data);
+
+        // Create request object
+        let req = test::TestRequest::post().uri(uri.as_str()).to_request();
+
+        // Execute application
+        let res = test::call_service(&app, req).await;
+        assert_eq!(res.status(), StatusCode::OK);
+    }
+
+    //  #[actix_web::test]
+    //  async fn totp_create_secret_test() {
+    //      dotenv::dotenv().ok();
     //
-    //     let pool = PgPool::connect(&env::var("DATABASE_URL").unwrap())
-    //         .await
-    //         .unwrap();
+    //      let pool = PgPool::connect(&env::var("DATABASE_URL").unwrap())
+    //          .await
+    //          .unwrap();
     //
-    //     let app = test::init_service(
-    //         App::new()
-    //             .app_data(web::Data::new(pool.clone()))
-    //             .service(totp_validate_creation),
-    //     )
-    //     .await;
+    //      let app = test::init_service(
+    //          App::new()
+    //              .app_data(web::Data::new(pool.clone()))
+    //              .service(totp_create_send_secret),
+    //      )
+    //      .await;
     //
-    //     let secret = create_secret_from_entropy();
-    //     let expiration_time: DateTime<Utc> = Utc::now() + Duration::minutes(5);
+    //      // Create request object
+    //      let req = test::TestRequest::post()
+    //          .uri("/auth/totp/create")
+    //          .to_request();
     //
-    //     let totp_validation_cookie =
-    //         create_jwt_and_cookie(secret.to_owned(), SECRET_FOR_TOTP_AUTH, expiration_time)
-    //             .unwrap();
+    //      // Execute application
+    //      let res = test::call_service(&app, req).await;
+    //      println!("res {:?}", res);
+    //      assert_eq!(res.status(), StatusCode::OK);
+    //  }
+
+    //  #[actix_web::test]
+    //  async fn totp_validate_create_success() {
+    //      dotenv::dotenv().ok();
     //
-    //     let totp_token = libreauth::oath::TOTPBuilder::new()
-    //         .base32_key(&secret)
-    //         .finalize()
-    //         .unwrap()
-    //         .generate();
+    //      let pool = PgPool::connect(&env::var("DATABASE_URL").unwrap())
+    //          .await
+    //          .unwrap();
     //
-    //     // Create request object
-    //     let req = test::TestRequest::post()
-    //         .cookie(totp_validation_cookie)
-    //         .set_json(totp_token)
-    //         .uri("/auth/totp/validate")
-    //         .to_request();
+    //      let app = test::init_service(
+    //          App::new()
+    //              .app_data(web::Data::new(pool.clone()))
+    //              .service(totp_validate_creation),
+    //      )
+    //      .await;
     //
-    //     // Execute application
-    //     let res = test::call_service(&app, req).await;
-    //     assert_eq!(res.status(), StatusCode::OK);
-    // }
-    // #[actix_web::test]
-    // async fn totp_validate_create_error() {
-    //     dotenv::dotenv().ok();
+    //      let secret = create_secret_from_entropy();
+    //      let expiration_time: DateTime<Utc> = Utc::now() + Duration::minutes(5);
     //
-    //     let pool = PgPool::connect(&env::var("DATABASE_URL").unwrap())
-    //         .await
-    //         .unwrap();
+    //      let totp_validation_cookie =
+    //          create_jwt_and_cookie(secret.to_owned(), SECRET_FOR_TOTP_AUTH, expiration_time)
+    //              .unwrap();
     //
-    //     let app = test::init_service(
-    //         App::new()
-    //             .app_data(web::Data::new(pool.clone()))
-    //             .service(totp_validate_creation),
-    //     )
-    //     .await;
+    //      let totp_token = libreauth::oath::TOTPBuilder::new()
+    //          .base32_key(&secret)
+    //          .finalize()
+    //          .unwrap()
+    //          .generate();
     //
-    //     let secret = create_secret_from_entropy();
-    //     let expiration_time: DateTime<Utc> = Utc::now() + Duration::minutes(5);
+    //      // Create request object
+    //      let req = test::TestRequest::post()
+    //          .cookie(totp_validation_cookie)
+    //          .set_json(totp_token)
+    //          .uri("/auth/totp/validate")
+    //          .to_request();
     //
-    //     let totp_validation_cookie =
-    //         create_jwt_and_cookie(secret.to_owned(), SECRET_FOR_TOTP_AUTH, expiration_time)
-    //             .unwrap();
+    //      // Execute application
+    //      let res = test::call_service(&app, req).await;
+    //      assert_eq!(res.status(), StatusCode::OK);
+    //  }
+    //  #[actix_web::test]
+    //  async fn totp_validate_create_error() {
+    //      dotenv::dotenv().ok();
     //
-    //     // Create request object
-    //     let req = test::TestRequest::post()
-    //         .cookie(totp_validation_cookie)
-    //         .set_json("1231241234")
-    //         .uri("/auth/totp/validate")
-    //         .to_request();
+    //      let pool = PgPool::connect(&env::var("DATABASE_URL").unwrap())
+    //          .await
+    //          .unwrap();
     //
-    //     // Execute application
-    //     let res = test::call_service(&app, req).await;
-    //     assert_eq!(res.status(), StatusCode::UNPROCESSABLE_ENTITY);
-    // }
+    //      let app = test::init_service(
+    //          App::new()
+    //              .app_data(web::Data::new(pool.clone()))
+    //              .service(totp_validate_creation),
+    //      )
+    //      .await;
+    //
+    //      let secret = create_secret_from_entropy();
+    //      let expiration_time: DateTime<Utc> = Utc::now() + Duration::minutes(5);
+    //
+    //      let totp_validation_cookie =
+    //          create_jwt_and_cookie(secret.to_owned(), SECRET_FOR_TOTP_AUTH, expiration_time)
+    //              .unwrap();
+    //
+    //      // Create request object
+    //      let req = test::TestRequest::post()
+    //          .cookie(totp_validation_cookie)
+    //          .set_json("1231241234")
+    //          .uri("/auth/totp/validate")
+    //          .to_request();
+    //
+    //      // Execute application
+    //      let res = test::call_service(&app, req).await;
+    //      assert_eq!(res.status(), StatusCode::UNPROCESSABLE_ENTITY);
+    //  }
 }
