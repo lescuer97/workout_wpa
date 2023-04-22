@@ -1,4 +1,3 @@
-#![feature(try_trait_v2)]
 use serde::{Deserialize, Serialize};
 #[allow(non_camel_case_types)]
 // use workouts::workouts_server::{Workouts, WorkoutsServer};
