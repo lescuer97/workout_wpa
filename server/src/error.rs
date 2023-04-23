@@ -1,59 +1,6 @@
-use actix_web::{HttpResponse, ResponseError};
+use actix_web::{http::StatusCode, HttpResponse, ResponseError};
 
-#[derive(Debug, thiserror::Error)]
-pub enum ErrorForResponse {
-    #[error("{0}")]
-    UserErrorRes(#[from] UserError),
-    #[error("{0}")]
-    AuthErrorRes(#[from] AuthError),
-}
-impl ResponseError for ErrorForResponse {
-    fn error_response(&self) -> HttpResponse {
-        match self {
-            ErrorForResponse::UserErrorRes(user_error) => match user_error {
-                UserError::PasswordDontMatch => {
-                    // println!("do some stuff related to CustomOne error");
-                    HttpResponse::Forbidden().finish()
-                }
-                UserError::DBError(error) => {
-                    let error_db = error.as_database_error();
-                    if let Some(err) = error_db {
-                        println!("Error message: {:?}", err.message());
-                        println!("Error Code: {:?}", err.code());
-                    }
-                    // println!(" Error {:?}", error.as_database_error());
-                    // match error {
-                    //     sqlx::Error::RowNotFound => {
-                    //         return HttpResponse::NotFound().finish();
-                    //     }
-                    //     _ => {
-                    //         return HttpResponse::InternalServerError().finish();
-                    //     }
-                    // }
-                    println!("do some stuff related to CustomTwo error");
-                    HttpResponse::UnprocessableEntity().finish()
-                }
-
-                UserError::UnexpectedError => {
-                    println!("do some stuff related to CustomThree error");
-                    HttpResponse::InternalServerError().finish()
-                }
-                UserError::HashingError => {
-                    println!("do some stuff related to CustomThree error");
-                    HttpResponse::InternalServerError().finish()
-                }
-                _ => {
-                    println!("do some stuff related to CustomFour error");
-                    HttpResponse::BadRequest().finish()
-                }
-            },
-            _ => {
-                println!("do some stuff related to CustomFour error");
-                HttpResponse::BadRequest().finish()
-            }
-        }
-    }
-}
+use crate::server_messages::ResponseBodyMessage;
 
 #[derive(Debug, thiserror::Error)]
 pub enum UserError {
@@ -76,7 +23,8 @@ impl ResponseError for UserError {
         match self {
             UserError::PasswordDontMatch => {
                 // println!("do some stuff related to CustomOne error");
-                HttpResponse::Forbidden().finish()
+                return ResponseBodyMessage::fail_message("Password doesn't match")
+                    .send_response(StatusCode::FORBIDDEN);
             }
 
             UserError::DBError(error) => {
@@ -94,22 +42,22 @@ impl ResponseError for UserError {
                 //         return HttpResponse::InternalServerError().finish();
                 //     }
                 // }
-                println!("do some stuff related to CustomTwo error");
-                HttpResponse::UnprocessableEntity().finish()
+                return ResponseBodyMessage::fail_message("Error with the database")
+                    .send_response(StatusCode::INTERNAL_SERVER_ERROR);
             }
 
             UserError::UnexpectedError => {
-                println!("do some stuff related to CustomThree error");
-                HttpResponse::InternalServerError().finish()
+                return ResponseBodyMessage::fail_message("Unexpected error")
+                    .send_response(StatusCode::INTERNAL_SERVER_ERROR);
             }
             UserError::HashingError => {
                 println!("do some stuff related to CustomThree error");
-                HttpResponse::InternalServerError().finish()
+                return ResponseBodyMessage::fail_message("Unexpected error")
+                    .send_response(StatusCode::INTERNAL_SERVER_ERROR);
             }
-
-            _ => {
-                println!("do some stuff related to CustomFour error");
-                HttpResponse::BadRequest().finish()
+            UserError::SerdeQsError(_) => {
+                return ResponseBodyMessage::fail_message("Unexpected error")
+                    .send_response(StatusCode::INTERNAL_SERVER_ERROR);
             }
         }
     }
@@ -132,25 +80,26 @@ impl ResponseError for AuthError {
     fn error_response(&self) -> HttpResponse {
         match self {
             AuthError::NoJWTToken => {
-                // println!("do some stuff related to CustomOne error");
-                HttpResponse::Forbidden().finish()
+                return ResponseBodyMessage::fail_message("you are not logged in")
+                    .send_response(StatusCode::FORBIDDEN);
             }
             AuthError::InvalidToken => {
-                // println!("do some stuff related to CustomOne error");
-                HttpResponse::Forbidden().finish()
+                return ResponseBodyMessage::fail_message("Please log in again")
+                    .send_response(StatusCode::FORBIDDEN);
             }
             AuthError::UnexpectedError => {
-                // println!("do some stuff related to CustomOne error");
-                HttpResponse::InternalServerError().finish()
+                return ResponseBodyMessage::fail_message("Unexpected error")
+                    .send_response(StatusCode::INTERNAL_SERVER_ERROR);
             }
-            AuthError::JsonWebTokenError(error) => {
+            AuthError::JsonWebTokenError(_) => {
                 // println!("do some stuff related to CustomOne error");
-                println!("Error {:?}", error);
-                HttpResponse::InternalServerError().finish()
+                return ResponseBodyMessage::fail_message("Unexpected error")
+                    .send_response(StatusCode::INTERNAL_SERVER_ERROR);
             }
             AuthError::TotpError => {
                 // println!("do some stuff related to CustomOne error");
-                HttpResponse::Forbidden().finish()
+                return ResponseBodyMessage::fail_message("Unexpected error")
+                    .send_response(StatusCode::INTERNAL_SERVER_ERROR);
             }
         }
     }

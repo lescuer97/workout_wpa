@@ -1,9 +1,9 @@
-use actix_web::{get, post, web, Error, HttpRequest, HttpResponse};
+use actix_web::{get, http::StatusCode, post, web, Error, HttpRequest, HttpResponse};
 use chrono::{DateTime, Duration, Utc};
 use serde_qs;
 use server::{
     auth::{JWTToken, LoginData, RegisterUserData, AUTHENTIFIED_COOKIE, COOKIE_FOR_TOTP_AUTH},
-    error::{ErrorForResponse, UserError},
+    error::UserError,
     server_messages::ResponseBodyMessage,
     utils::{create_jwt_and_cookie, make_removal_cookie},
 };
@@ -27,7 +27,7 @@ pub async fn register_user(
                         if db_err_code == "23505" {
                             let fail_message =
                                 ResponseBodyMessage::fail_message("User already exists");
-                            return Ok(HttpResponse::UnprocessableEntity().json(fail_message));
+                            return Ok(fail_message.send_response(StatusCode::CONFLICT));
                         }
                     } else {
                         return Ok(HttpResponse::UnprocessableEntity().finish());
@@ -40,7 +40,7 @@ pub async fn register_user(
 
     let success_registering = ResponseBodyMessage::success_message("Registed successfuly");
 
-    return Ok(HttpResponse::Ok().json(success_registering));
+    return Ok(success_registering.send_response(StatusCode::CREATED));
 }
 
 #[post("/auth/login")]
@@ -173,7 +173,7 @@ mod tests {
 
         // Execute application
         let res = test::call_service(&app, req).await;
-        assert_eq!(res.status(), StatusCode::OK);
+        assert_eq!(res.status(), StatusCode::CREATED);
     }
 
     #[actix_web::test]
