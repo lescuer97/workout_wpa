@@ -176,7 +176,8 @@
     "https://esm.sh/v98/twind@0.16.17/deno/twind.js": "9774a4f1ddf2c1655f38040aa9c82ad921055b92bb8a62f5251625264e40ce02",
     "https://esm.sh/v98/twind@0.16.17/sheets": "58535757e0fbc01b9d6122cbd8e9bd02faa793f5fb5aef9619fb8d8fd0469bde",
     "https://esm.sh/v98/twind@0.16.17/sheets/sheets.d.ts": "ac65f165be285376a1625e01252201a4c9e4cebe0078a5b2e47ca3e5fde76489",
-    "https://esm.sh/v98/twind@0.16.17/twind.d.ts": "795f4921b74adee8a90dfeb4e71e524f83b1822a307692e2c36874120629ebd9"
+    "https://esm.sh/v98/twind@0.16.17/twind.d.ts": "795f4921b74adee8a90dfeb4e71e524f83b1822a307692e2c36874120629ebd9",
+    "https://esm.sh/v98/twind@0.16.17/twind.js": "562ce70098dce99686ce80b5b0baab285b500ee0e7f6338cb8e9cfbd6b6bdf48"
   },
   "npm": {
     "specifiers": {

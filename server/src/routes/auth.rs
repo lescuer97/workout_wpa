@@ -44,13 +44,15 @@ pub async fn register_user(
 }
 
 #[post("/auth/login")]
-pub async fn login_function(
+pub async fn login_user(
     req: HttpRequest,
     pool: web::Data<Pool<Postgres>>,
 ) -> Result<HttpResponse, Error> {
     let config = serde_qs::Config::new(25, false);
-    // let mut item = config.deserialize_str::<LoginData>(req.query_string())?;
+    println!("req: {:?}", req.query_string());
     let item = config.deserialize_str::<LoginData>(req.query_string())?;
+
+    println!("item: {:?}", item);
 
     // used in case that the client calls when already signed in
     match JWTToken::validate_jwt_token_from_cookie(req, AUTHENTIFIED_COOKIE) {
@@ -113,10 +115,22 @@ pub async fn check_login(req: HttpRequest) -> HttpResponse {
     };
 }
 
+#[post("/auth/logout")]
+pub async fn logout() -> HttpResponse {
+    let jwt_cookie = match make_removal_cookie(AUTHENTIFIED_COOKIE) {
+        Ok(cookie) => cookie,
+        Err(_) => return HttpResponse::InternalServerError().finish(),
+    };
+
+    let logout_response = ResponseBodyMessage::success_message("Logged out user");
+
+    HttpResponse::Ok().cookie(jwt_cookie).json(logout_response)
+}
+
 #[cfg(test)]
 mod tests {
     use crate::register_user;
-    use crate::routes::auth::login_function;
+    use crate::routes::auth::login_user;
 
     use actix_web::{http::StatusCode, test, web, App};
     // use chrono::{DateTime, Duration, Utc};
@@ -198,7 +212,7 @@ mod tests {
     }
 
     #[actix_web::test]
-    async fn login_user() {
+    async fn login_user_test() {
         dotenv::dotenv().ok();
 
         let pool = PgPool::connect(&env::var("DATABASE_URL").unwrap())
@@ -208,7 +222,7 @@ mod tests {
         let app = test::init_service(
             App::new()
                 .app_data(web::Data::new(pool.clone()))
-                .service(login_function),
+                .service(login_user),
         )
         .await;
 
@@ -221,6 +235,36 @@ mod tests {
         // Execute application
         let res = test::call_service(&app, req).await;
         assert_eq!(res.status(), StatusCode::OK);
+    }
+    #[actix_web::test]
+    async fn login_user_check_cookie_test() {
+        dotenv::dotenv().ok();
+
+        let pool = PgPool::connect(&env::var("DATABASE_URL").unwrap())
+            .await
+            .unwrap();
+
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(pool.clone()))
+                .service(login_user),
+        )
+        .await;
+
+        let form_data = "email=test22s%40test.com&password=%26%238V%2An%25%21WL5%5E544%23Z7xr";
+        let uri = format!("/auth/login?{}", form_data);
+
+        // Create request object
+        let req = test::TestRequest::post().uri(uri.as_str()).to_request();
+
+        // Execute application
+        let res = test::call_service(&app, req).await;
+        let cookie = res.headers().get("set-cookie").unwrap();
+
+        assert_eq!(res.status(), StatusCode::OK);
+        assert_eq!(cookie.to_str().unwrap().contains("auth"), true);
+
+        // grab auth cookie
     }
 
     //  #[actix_web::test]

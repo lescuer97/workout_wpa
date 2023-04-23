@@ -87,6 +87,7 @@ pub struct LoginData {
     pub email: String,
     pub password: Option<String>,
 }
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LoginDataToSend {
     pub email: String,

@@ -1,6 +1,6 @@
 use actix_cors::Cors;
 use actix_web::{error, middleware, web, App, HttpRequest, HttpResponse, HttpServer};
-use routes::auth::register_user;
+use routes::auth::{check_login, login_user, logout, register_user};
 use sqlx::postgres::PgPool;
 use sqlx::{Pool, Postgres};
 use std::env;
@@ -48,6 +48,10 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .service(post_workout)
             .service(register_user)
+            .service(login_user)
+            .service(logout)
+            .service(check_login)
+        // let mut item = config.deserialize_str::<LoginData>(req.query_string())?;
     })
     .bind(("127.0.0.1", 8080))?
     .run()
