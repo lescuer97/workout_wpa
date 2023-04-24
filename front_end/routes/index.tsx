@@ -6,7 +6,7 @@ import {
 } from "$fresh/server.ts";
 
 export const handler: Handlers = {
-  GET(req: Response, ctx: HandlerContext<State>) {
+  GET(req: Request, ctx: HandlerContext<State>) {
     if (!ctx.state.goodLogin) {
       return new Response("", {
         status: 301,
