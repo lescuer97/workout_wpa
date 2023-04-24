@@ -1,4 +1,6 @@
-use actix_web::{HttpResponse, ResponseError};
+use actix_web::{http::StatusCode, HttpResponse, ResponseError};
+
+use crate::server_messages::ResponseBodyMessage;
 
 #[derive(Debug, thiserror::Error)]
 pub enum UserError {
@@ -14,13 +16,15 @@ pub enum UserError {
     #[error("{0}")]
     SerdeQsError(#[from] serde_qs::Error),
 }
+
 /// Actix Web uses `ResponseError` for conversion of errors to a response
 impl ResponseError for UserError {
     fn error_response(&self) -> HttpResponse {
         match self {
             UserError::PasswordDontMatch => {
                 // println!("do some stuff related to CustomOne error");
-                HttpResponse::Forbidden().finish()
+                return ResponseBodyMessage::fail_message("Password doesn't match")
+                    .send_response(StatusCode::FORBIDDEN);
             }
 
             UserError::DBError(error) => {
@@ -38,22 +42,64 @@ impl ResponseError for UserError {
                 //         return HttpResponse::InternalServerError().finish();
                 //     }
                 // }
-                println!("do some stuff related to CustomTwo error");
-                HttpResponse::UnprocessableEntity().finish()
+                return ResponseBodyMessage::fail_message("Error with the database")
+                    .send_response(StatusCode::INTERNAL_SERVER_ERROR);
             }
 
             UserError::UnexpectedError => {
-                println!("do some stuff related to CustomThree error");
-                HttpResponse::InternalServerError().finish()
+                return ResponseBodyMessage::fail_message("Unexpected error")
+                    .send_response(StatusCode::INTERNAL_SERVER_ERROR);
             }
             UserError::HashingError => {
                 println!("do some stuff related to CustomThree error");
-                HttpResponse::InternalServerError().finish()
+                return ResponseBodyMessage::fail_message("Unexpected error")
+                    .send_response(StatusCode::INTERNAL_SERVER_ERROR);
             }
+            UserError::SerdeQsError(_) => {
+                return ResponseBodyMessage::fail_message("Unexpected error")
+                    .send_response(StatusCode::INTERNAL_SERVER_ERROR);
+            }
+        }
+    }
+}
 
-            _ => {
-                println!("do some stuff related to CustomFour error");
-                HttpResponse::BadRequest().finish()
+#[derive(Debug, thiserror::Error, Clone)]
+pub enum AuthError {
+    #[error("No JWT Error")]
+    NoJWTToken,
+    #[error("The token is not valid")]
+    InvalidToken,
+    #[error("Unexpected error has ocurred")]
+    UnexpectedError,
+    #[error("Unexpected error has ocurred")]
+    JsonWebTokenError(#[from] jsonwebtoken::errors::Error),
+    #[error("Error from totp authentification")]
+    TotpError,
+}
+impl ResponseError for AuthError {
+    fn error_response(&self) -> HttpResponse {
+        match self {
+            AuthError::NoJWTToken => {
+                return ResponseBodyMessage::fail_message("you are not logged in")
+                    .send_response(StatusCode::FORBIDDEN);
+            }
+            AuthError::InvalidToken => {
+                return ResponseBodyMessage::fail_message("Please log in again")
+                    .send_response(StatusCode::FORBIDDEN);
+            }
+            AuthError::UnexpectedError => {
+                return ResponseBodyMessage::fail_message("Unexpected error")
+                    .send_response(StatusCode::INTERNAL_SERVER_ERROR);
+            }
+            AuthError::JsonWebTokenError(_) => {
+                // println!("do some stuff related to CustomOne error");
+                return ResponseBodyMessage::fail_message("Unexpected error")
+                    .send_response(StatusCode::INTERNAL_SERVER_ERROR);
+            }
+            AuthError::TotpError => {
+                // println!("do some stuff related to CustomOne error");
+                return ResponseBodyMessage::fail_message("Unexpected error")
+                    .send_response(StatusCode::INTERNAL_SERVER_ERROR);
             }
         }
     }

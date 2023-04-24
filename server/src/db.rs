@@ -10,7 +10,7 @@ pub async fn register_user_query(
 ) -> Result<(), UserError> {
     let mut conn = pool.acquire().await?;
     if let Some(uuid) = user.id {
-        match sqlx::query_as!(
+        sqlx::query_as!(
             RegisterUserData,
             r#"
     INSERT INTO users ( email, password,id, u2f, totp, rol)
@@ -24,13 +24,7 @@ pub async fn register_user_query(
             user.rol.to_owned() as _,
         )
         .execute(&mut conn)
-        .await
-        {
-            Ok(user) => user,
-            Err(error) => {
-                return Err(UserError::DBError(error));
-            }
-        };
+        .await?;
 
         return Ok(());
     } else {
@@ -42,7 +36,7 @@ pub async fn query_user_with_email(
     email: String,
     pool: Data<Pool<Postgres>>,
 ) -> Result<LoginDataToSend, UserError> {
-    let user_query: LoginDataToSend = match sqlx::query_as!(
+    let user_query: LoginDataToSend = sqlx::query_as!(
         LoginDataToSend,
         r#"
         SELECT email, password, u2f, totp, id
@@ -52,11 +46,7 @@ pub async fn query_user_with_email(
         email
     )
     .fetch_one(pool.get_ref())
-    .await
-    {
-        Ok(user) => user,
-        Err(error) => return Err(UserError::DBError(error)),
-    };
+    .await?;
 
     return Ok(user_query);
 }

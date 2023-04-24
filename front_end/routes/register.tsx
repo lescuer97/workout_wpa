@@ -1,9 +1,6 @@
 import { Head } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
-import { Muscle, WeightUnit, WorkoutType } from "@/types/workouts.ts";
-
 import Input from "@/islands/Input.tsx";
-import Select from "@/islands/Select.tsx";
 
 interface Data {
   results: UserRegistration;

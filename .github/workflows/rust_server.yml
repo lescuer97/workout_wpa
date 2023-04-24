@@ -41,8 +41,12 @@ jobs:
     - name: Test
       env: # Or as an environment variable
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        ENVIROMENT: ${{ secrets.ENVIROMENT }}
+        SECRET_FOR_JWT: ${{ secrets.SECRET_FOR_JWT }}
       run: |
         echo DATABASE_URL="$DATABASE_URL" >> .env
+        echo ENVIROMENT="$ENVIROMENT" >> .env
+        echo SECRET_FOR_JWT="$SECRET_FOR_JWT" >> .env
         cargo check
         cargo test --all
 

@@ -10,6 +10,7 @@ pub mod auth;
 pub mod db;
 pub mod error;
 pub mod server_messages;
+pub mod utils;
 
 #[derive(Clone, PartialEq, Serialize, Debug, Deserialize)]
 pub enum Muscle {

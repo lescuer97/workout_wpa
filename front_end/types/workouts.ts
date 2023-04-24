@@ -3,7 +3,6 @@ declare global {
   type Muscle = typeof Muscle[keyof typeof Muscle];
   type WeightUnit = typeof WeightUnit[keyof typeof WeightUnit];
   type WorkoutType = typeof WorkoutType[keyof typeof WorkoutType];
-  type UserRole = typeof UserRole[keyof typeof UserRole];
 
   type Excersize = {
     name: string;
@@ -17,24 +16,10 @@ declare global {
     workout_type: string;
   };
 
-  type UserRegistration = {
-    email: string;
-    password: string;
-    password_repeat: string;
-  };
-
   type WorkoutList = {
     workouts: Array<Excersize>;
   };
 }
-
-export const UserRole = {
-  EditSelf: "EditSelf",
-  EditOther: "EditOther",
-  RemoveOther: "RemoveOther",
-  WatchOther: "WatchOther",
-  SuperAdmin: "SuperAdmin",
-} as const;
 
 export const WorkoutType = {
   CALISTHENICS: "CALISTHENICS",
