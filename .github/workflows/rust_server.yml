@@ -47,6 +47,7 @@ jobs:
         echo DATABASE_URL="$DATABASE_URL" >> .env
         echo ENVIROMENT="$ENVIROMENT" >> .env
         echo SECRET_FOR_JWT="$SECRET_FOR_JWT" >> .env
+        cat .env
         cargo check
         cargo test --all
 
