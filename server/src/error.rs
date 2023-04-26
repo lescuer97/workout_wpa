@@ -22,7 +22,7 @@ impl ResponseError for UserError {
     fn error_response(&self) -> HttpResponse {
         match self {
             UserError::PasswordDontMatch => {
-                // println!("do some stuff related to CustomOne error");
+                tracing::error!("Password doesn't match");
                 return ResponseBodyMessage::fail_message("Password doesn't match")
                     .send_response(StatusCode::FORBIDDEN);
             }
@@ -30,38 +30,31 @@ impl ResponseError for UserError {
             UserError::DBError(error) => {
                 let error_db = error.as_database_error();
                 if let Some(err) = error_db {
-                    println!("Error message: {:?}", err.message());
-                    println!("Error Code: {:?}", err.code());
+                    tracing::error!("Database Error: {}", err);
                 }
-                // println!(" Error {:?}", error.as_database_error());
-                // match error {
-                //     sqlx::Error::RowNotFound => {
-                //         return HttpResponse::NotFound().finish();
-                //     }
-                //     _ => {
-                //         return HttpResponse::InternalServerError().finish();
-                //     }
-                // }
                 return ResponseBodyMessage::fail_message("Error with the database")
                     .send_response(StatusCode::INTERNAL_SERVER_ERROR);
             }
 
             UserError::UnexpectedError => {
+                tracing::error!("Unexpected error");
                 return ResponseBodyMessage::fail_message("Unexpected error")
                     .send_response(StatusCode::INTERNAL_SERVER_ERROR);
             }
             UserError::HashingError => {
-                println!("do some stuff related to CustomThree error");
+                tracing::error!("something happened while hashing");
                 return ResponseBodyMessage::fail_message("Unexpected error")
                     .send_response(StatusCode::INTERNAL_SERVER_ERROR);
             }
-            UserError::SerdeQsError(_) => {
+            UserError::SerdeQsError(err) => {
+                tracing::error!("Serde had some error: {}", err);
                 return ResponseBodyMessage::fail_message("Unexpected error")
                     .send_response(StatusCode::INTERNAL_SERVER_ERROR);
             }
         }
     }
 }
+use actix_web::cookie::time;
 
 #[derive(Debug, thiserror::Error, Clone)]
 pub enum AuthError {
@@ -73,31 +66,41 @@ pub enum AuthError {
     UnexpectedError,
     #[error("Unexpected error has ocurred")]
     JsonWebTokenError(#[from] jsonwebtoken::errors::Error),
-    #[error("Error from totp authentification")]
-    TotpError,
+    #[error("{0}")]
+    TotpError(#[from] libreauth::oath::Error),
+    #[error("Time Error: {0}")]
+    ComponentRange(#[from] time::error::ComponentRange),
 }
 impl ResponseError for AuthError {
     fn error_response(&self) -> HttpResponse {
         match self {
             AuthError::NoJWTToken => {
+                tracing::error!("No JWT Token");
                 return ResponseBodyMessage::fail_message("you are not logged in")
                     .send_response(StatusCode::FORBIDDEN);
             }
             AuthError::InvalidToken => {
+                tracing::error!("Invalid Token");
                 return ResponseBodyMessage::fail_message("Please log in again")
                     .send_response(StatusCode::FORBIDDEN);
             }
             AuthError::UnexpectedError => {
+                tracing::error!("Something unexpected happened");
                 return ResponseBodyMessage::fail_message("Unexpected error")
                     .send_response(StatusCode::INTERNAL_SERVER_ERROR);
             }
-            AuthError::JsonWebTokenError(_) => {
-                // println!("do some stuff related to CustomOne error");
+            AuthError::JsonWebTokenError(error) => {
+                tracing::error!("something happened while parsing jwt: {}", error);
+                return ResponseBodyMessage::fail_message("Unexpected error")
+                    .send_response(StatusCode::FORBIDDEN);
+            }
+            AuthError::TotpError(err) => {
+                tracing::error!("totp error: {}", err);
                 return ResponseBodyMessage::fail_message("Unexpected error")
                     .send_response(StatusCode::INTERNAL_SERVER_ERROR);
             }
-            AuthError::TotpError => {
-                // println!("do some stuff related to CustomOne error");
+            AuthError::ComponentRange(err) => {
+                tracing::error!("{}", err);
                 return ResponseBodyMessage::fail_message("Unexpected error")
                     .send_response(StatusCode::INTERNAL_SERVER_ERROR);
             }

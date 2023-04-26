@@ -21,7 +21,6 @@ export const handler: Handlers<Data> = {
       },
     );
 
-    console.log({ res });
     // if (!res.ok) {
     // }
 

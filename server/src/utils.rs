@@ -32,11 +32,7 @@ fn generate_cookie(
     expiration_time: DateTime<Utc>,
 ) -> Result<Cookie, AuthError> {
     let enviroment = get_env_variable(ENVIROMENT);
-    let formated_offset = match OffsetDateTime::from_unix_timestamp(expiration_time.timestamp()) {
-        Ok(offset) => offset,
-
-        Err(_) => return Err(AuthError::UnexpectedError),
-    };
+    let formated_offset = OffsetDateTime::from_unix_timestamp(expiration_time.timestamp())?;
     let formated_expiration = Expiration::from(formated_offset);
     let cookie: Cookie = if enviroment == "development" {
         cookie::Cookie::build(name, value)
@@ -77,7 +73,7 @@ pub fn validate_totp_token(secret: String, token: web::Json<String>) -> Result<b
         .finalize()
     {
         Ok(totp) => return Ok(totp.is_valid(token.as_str())),
-        Err(_) => return Err(AuthError::UnexpectedError),
+        Err(err) => return Err(err.into()),
     };
 }
 
