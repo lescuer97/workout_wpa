@@ -4,6 +4,7 @@ use routes::auth::{check_login, login_user, logout, register_user};
 use sqlx::postgres::PgPool;
 use sqlx::{Pool, Postgres};
 use std::env;
+use tracing_actix_web::TracingLogger;
 
 mod routes;
 use routes::workout::post_workout;
@@ -44,7 +45,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::JsonConfig::default().error_handler(json_error_handler))
-            .wrap(middleware::Logger::default())
+            .wrap(TracingLogger::default())
             .wrap(cors)
             .service(post_workout)
             .service(register_user)

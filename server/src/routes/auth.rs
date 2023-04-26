@@ -17,6 +17,7 @@ pub async fn register_user(
     let config = serde_qs::Config::new(25, false);
     // let mut user = config.deserialize_str::<RegisterUserData>(req.query_string())?;
     let mut user = config.deserialize_str::<RegisterUserData>(req.query_string())?;
+    tracing::info!("Register attempt {:?}", user.email);
 
     match user.register(pool).await {
         Ok(()) => (),
@@ -25,16 +26,17 @@ pub async fn register_user(
                 if let Some(error_db) = error.as_database_error() {
                     if let Some(db_err_code) = error_db.code() {
                         if db_err_code == "23505" {
+                            tracing::error!("User already exists {}", user.email);
                             let fail_message =
                                 ResponseBodyMessage::fail_message("User already exists");
                             return Ok(fail_message.send_response(StatusCode::CONFLICT));
                         }
                     } else {
-                        return Ok(HttpResponse::UnprocessableEntity().finish());
+                        return Err(UserError::DBError(error).into());
                     }
                 }
             }
-            _ => return Err(UserError::UnexpectedError.into()),
+            err => return Err(err.into()),
         },
     };
 
@@ -49,10 +51,9 @@ pub async fn login_user(
     pool: web::Data<Pool<Postgres>>,
 ) -> Result<HttpResponse, Error> {
     let config = serde_qs::Config::new(25, false);
-    println!("req: {:?}", req.query_string());
     let item = config.deserialize_str::<LoginData>(req.query_string())?;
 
-    println!("item: {:?}", item);
+    tracing::info!("login attempt {:?}", item.email);
 
     // used in case that the client calls when already signed in
     match JWTToken::validate_jwt_token_from_cookie(req, AUTHENTIFIED_COOKIE) {
@@ -61,7 +62,7 @@ pub async fn login_user(
 
             return Ok(HttpResponse::Accepted().json(already_logedin_value));
         }
-        Err(_) => println!("No jwt token"),
+        Err(_) => tracing::info!("user doesn't already have a valid token"),
     }
 
     let login_data = item.login(pool).await?;
@@ -100,31 +101,20 @@ pub async fn login_user(
     }
 }
 #[get("/auth/checklogin")]
-pub async fn check_login(req: HttpRequest) -> HttpResponse {
-    match JWTToken::validate_jwt_token_from_cookie(req, AUTHENTIFIED_COOKIE) {
-        Ok(_) => return HttpResponse::Ok().finish(),
-        Err(_) => {
-            let jwt_cookie = match make_removal_cookie(AUTHENTIFIED_COOKIE) {
-                Ok(cookie) => cookie,
-                Err(_) => return HttpResponse::InternalServerError().finish(),
-            };
-            return HttpResponse::UnprocessableEntity()
-                .cookie(jwt_cookie)
-                .finish();
-        }
-    };
+pub async fn check_login(req: HttpRequest) -> Result<HttpResponse, Error> {
+    JWTToken::validate_jwt_token_from_cookie(req, AUTHENTIFIED_COOKIE)?;
+    let success_registering = ResponseBodyMessage::success_message("Logged in");
+
+    return Ok(success_registering.send_response(StatusCode::OK));
 }
 
 #[post("/auth/logout")]
-pub async fn logout() -> HttpResponse {
-    let jwt_cookie = match make_removal_cookie(AUTHENTIFIED_COOKIE) {
-        Ok(cookie) => cookie,
-        Err(_) => return HttpResponse::InternalServerError().finish(),
-    };
+pub async fn logout() -> Result<HttpResponse, Error> {
+    let jwt_cookie = make_removal_cookie(AUTHENTIFIED_COOKIE)?;
 
     let logout_response = ResponseBodyMessage::success_message("Logged out user");
 
-    HttpResponse::Ok().cookie(jwt_cookie).json(logout_response)
+    Ok(HttpResponse::Ok().cookie(jwt_cookie).json(logout_response))
 }
 
 #[cfg(test)]
@@ -236,6 +226,7 @@ mod tests {
         let res = test::call_service(&app, req).await;
         assert_eq!(res.status(), StatusCode::OK);
     }
+
     #[actix_web::test]
     async fn login_user_check_cookie_test() {
         dotenv::dotenv().ok();
@@ -253,7 +244,6 @@ mod tests {
 
         let form_data = "email=test22s%40test.com&password=%26%238V%2An%25%21WL5%5E544%23Z7xr";
         let uri = format!("/auth/login?{}", form_data);
-
         // Create request object
         let req = test::TestRequest::post().uri(uri.as_str()).to_request();
 
