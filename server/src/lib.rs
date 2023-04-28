@@ -170,88 +170,90 @@ mod tests {
             }
         );
     }
-    // #[test]
-    // fn create_workout_list() {
-    //     let ex_list: WorkoutList = WorkoutList::new(vec![
-    //         Excercise::new(
-    //             "Bench Press".to_string(),
-    //             100,
-    //             "".to_string(),
-    //             3,
-    //             60,
-    //             8,
-    //             WeightUnit::KILOGRAMS,
-    //             vec![Muscle::CHEST, Muscle::FRONT_DELTS],
-    //             WorkoutType::WEIGHTS,
-    //         ),
-    //         Excercise::new(
-    //             "Pull Up".to_string(),
-    //             100,
-    //             "".to_string(),
-    //             3,
-    //             60,
-    //             8,
-    //             WeightUnit::KILOGRAMS,
-    //             vec![Muscle::REAR_DELTS, Muscle::BACK],
-    //             WorkoutType::CALISTHENICS,
-    //         ),
-    //         Excercise::new(
-    //             "Incline Bench Press".to_string(),
-    //             100,
-    //             "".to_string(),
-    //             3,
-    //             60,
-    //             8,
-    //             WeightUnit::KILOGRAMS,
-    //             vec![Muscle::CHEST, Muscle::FRONT_DELTS],
-    //             WorkoutType::WEIGHTS,
-    //         ),
-    //     ]);
-    //
-    //     let id0 = ex_list.workouts[0].id;
-    //     let id1 = ex_list.workouts[1].id;
-    //     let id2 = ex_list.workouts[2].id;
-    //
-    //     assert_eq!(
-    //         ex_list,
-    //         WorkoutList {
-    //             workouts: vec![
-    //                 Excercise::new(
-    //                     "Bench Press".to_string(),
-    //                     100,
-    //                     "".to_string(),
-    //                     3,
-    //                     60,
-    //                     8,
-    //                     WeightUnit::KILOGRAMS,
-    //                     vec![Muscle::CHEST, Muscle::FRONT_DELTS],
-    //                     WorkoutType::WEIGHTS
-    //                     id :id0
-    //                 ),
-    //                 Excercise::new(
-    //                     "Pull Up".to_string(),
-    //                     100,
-    //                     "".to_string(),
-    //                     3,
-    //                     60,
-    //                     8,
-    //                     WeightUnit::KILOGRAMS,
-    //                     vec![Muscle::REAR_DELTS, Muscle::BACK],
-    //                     WorkoutType::CALISTHENICS
-    //                 ),
-    //                 Excercise::new(
-    //                     "Incline Bench Press".to_string(),
-    //                     100,
-    //                     "".to_string(),
-    //                     3,
-    //                     60,
-    //                     8,
-    //                     WeightUnit::KILOGRAMS,
-    //                     vec![Muscle::CHEST, Muscle::FRONT_DELTS],
-    //                     WorkoutType::WEIGHTS
-    //                 ),
-    //             ]
-    //         }
-    // )
-    // }
+    #[test]
+    fn create_workout_list() {
+        let ex_list: WorkoutList = WorkoutList::new(vec![
+            Excercise::new(
+                "Bench Press".to_string(),
+                100,
+                "".to_string(),
+                3,
+                60,
+                8,
+                WeightUnit::KILOGRAMS,
+                vec![Muscle::CHEST, Muscle::FRONT_DELTS],
+                WorkoutType::WEIGHTS,
+            ),
+            Excercise::new(
+                "Pull Up".to_string(),
+                100,
+                "".to_string(),
+                3,
+                60,
+                8,
+                WeightUnit::KILOGRAMS,
+                vec![Muscle::REAR_DELTS, Muscle::BACK],
+                WorkoutType::CALISTHENICS,
+            ),
+            Excercise::new(
+                "Incline Bench Press".to_string(),
+                100,
+                "".to_string(),
+                3,
+                60,
+                8,
+                WeightUnit::KILOGRAMS,
+                vec![Muscle::CHEST, Muscle::FRONT_DELTS],
+                WorkoutType::WEIGHTS,
+            ),
+        ]);
+
+        let id0 = ex_list.workouts[0].id;
+        let id1 = ex_list.workouts[1].id;
+        let id2 = ex_list.workouts[2].id;
+
+        assert_eq!(
+            ex_list,
+            WorkoutList {
+                workouts: vec![
+                    Excercise {
+                        name: "Bench Press".to_string(),
+                        weight: 100,
+                        weight_unit: WeightUnit::KILOGRAMS,
+                        sets: 3,
+                        reps: 8,
+                        rest: 60,
+                        media_url: "".to_string(),
+                        used_muscles: vec![Muscle::CHEST, Muscle::FRONT_DELTS],
+                        workout_type: WorkoutType::WEIGHTS,
+                        id: id0
+                    },
+                    Excercise {
+                        name: "Pull Up".to_string(),
+                        weight: 100,
+                        weight_unit: WeightUnit::KILOGRAMS,
+                        sets: 3,
+                        reps: 8,
+                        rest: 60,
+                        media_url: "".to_string(),
+                        used_muscles: vec![Muscle::REAR_DELTS, Muscle::BACK],
+                        workout_type: WorkoutType::CALISTHENICS,
+                        id: id1
+                    },
+                    Excercise {
+                        name: "Incline Bench Press".to_string(),
+                        weight: 100,
+                        weight_unit: WeightUnit::KILOGRAMS,
+                        sets: 3,
+                        reps: 8,
+                        rest: 60,
+                        media_url: "".to_string(),
+                        used_muscles: vec![Muscle::CHEST, Muscle::FRONT_DELTS],
+                        workout_type: WorkoutType::WEIGHTS,
+                        id: id2
+                    }
+                ]
+            }
+        )
+    }
 }
