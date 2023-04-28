@@ -19,6 +19,11 @@ declare global {
   type WorkoutList = {
     workouts: Array<Excersize>;
   };
+
+  type ErrorFromCreation = {
+    result: string;
+    data: string;
+  };
 }
 
 export const WorkoutType = {

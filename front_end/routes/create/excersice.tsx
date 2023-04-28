@@ -5,11 +5,7 @@ import { Muscle, WeightUnit, WorkoutType } from "@/types/workouts.ts";
 import Input from "@/islands/Input.tsx";
 import Select from "@/islands/Select.tsx";
 
-interface Data {
-  results: Excersize;
-  query: string;
-}
-export const handler: Handlers<Data> = {
+export const handler: Handlers<ErrorFromCreation> = {
   async POST(req, ctx) {
     const data: FormData = await req.formData<string>();
 
@@ -18,22 +14,28 @@ export const handler: Handlers<Data> = {
     const res = await fetch(`http://127.0.0.1:8080/workout?${queryString}`, {
       method: "POST",
     });
+    if (!res.ok) {
+      return ctx.render({
+        result: "error",
+        data: "There was an error while creating the excersice",
+      });
+    }
 
     const ex = await res.json() as Excersize;
 
-    return ctx.render({ results: ex, query: "hello world" });
+    return ctx.render({
+      result: "success",
+      data: "Excersize created with success",
+    });
   },
 };
 
-export default function Home({ data }: PageProps<Data>) {
+export default function Home({ data }: PageProps<ErrorFromCreation>) {
   if (data) {
     return (
       <>
-        <Head>
-          <title>Fresh App</title>
-        </Head>
         <div>
-          hello world
+          {data.data}
         </div>
       </>
     );
