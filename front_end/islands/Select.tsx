@@ -7,12 +7,13 @@ type IterableEnum = typeof WorkoutType | typeof Muscle | typeof WeightUnit;
 type SelectElementAttribute = JSX.HTMLAttributes<HTMLSelectElement> & {
   "data-options": IterableEnum;
 };
+
 export default function Select(props: SelectElementAttribute) {
   function renderOptions(): JSX.Element[] {
     const arr: JSX.Element[] = [];
 
     for (const child in props["data-options"]) {
-      arr.push(<option selected value={child}>{child}</option>);
+      arr.push(<option class="p-1" value={child}>{child}</option>);
     }
     return arr;
   }

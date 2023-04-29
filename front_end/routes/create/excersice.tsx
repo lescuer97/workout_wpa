@@ -7,21 +7,22 @@ import Select from "@/islands/Select.tsx";
 
 export const handler: Handlers<ErrorFromCreation> = {
   async POST(req, ctx) {
-    const data: FormData = await req.formData<string>();
+    const data: FormData = await req.formData();
 
     const queryString = new URLSearchParams(data).toString();
 
-    const res = await fetch(`http://127.0.0.1:8080/workout?${queryString}`, {
+    const res = await fetch(`http://127.0.0.1:8080/excersice?${queryString}`, {
       method: "POST",
     });
+
+    const ex = await res.json();
+
     if (!res.ok) {
       return ctx.render({
         result: "error",
         data: "There was an error while creating the excersice",
       });
     }
-
-    const ex = await res.json() as Excersize;
 
     return ctx.render({
       result: "success",
@@ -43,7 +44,7 @@ export default function Home({ data }: PageProps<ErrorFromCreation>) {
     return (
       <>
         <Head>
-          <title>Fresh App</title>
+          <title>Create Workout</title>
         </Head>
         <div class="flex justify-center flex-row justify-items-center w-full">
           <form method="POST" class="flex flex-col">
@@ -52,16 +53,36 @@ export default function Home({ data }: PageProps<ErrorFromCreation>) {
               type="text"
               placeholder="Name"
               name="name"
+              required
             />
             <Input
               value={2}
               type="number"
               placeholder="Sets"
               name="sets"
+              required
             />
-            <Input value={5} type="number" placeholder="Reps" name="reps" />
-            <Input value={5} type="number" placeholder="Weight" name="weight" />
-            <Input value={5} type="number" placeholder="Rest" name="rest" />
+            <Input
+              required
+              value={5}
+              type="number"
+              placeholder="Reps"
+              name="reps"
+            />
+            <Input
+              required
+              value={5}
+              type="number"
+              placeholder="Weight"
+              name="weight"
+            />
+            <Input
+              required
+              value={5}
+              type="number"
+              placeholder="Rest"
+              name="rest"
+            />
             <Input
               value=""
               type="text"
@@ -69,16 +90,19 @@ export default function Home({ data }: PageProps<ErrorFromCreation>) {
               name="media_url"
             />
             <Select
+              required
               placeholder="Workout Type"
               name="workout_type"
               data-options={WorkoutType}
             />
             <Select
+              required
               placeholder="Weight Unit"
               name="weight_unit"
               data-options={WeightUnit}
             />
             <Select
+              required
               placeholder="Used Muscle"
               multiple
               name="used_muscles[]"

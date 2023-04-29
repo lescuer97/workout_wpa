@@ -12,7 +12,6 @@ pub enum UserError {
     UnexpectedError,
     #[error("There was an error hashing the password")]
     HashingError,
-
     #[error("{0}")]
     SerdeQsError(#[from] serde_qs::Error),
 }
@@ -48,12 +47,13 @@ impl ResponseError for UserError {
             }
             UserError::SerdeQsError(err) => {
                 tracing::error!("Serde had some error: {}", err);
-                return ResponseBodyMessage::fail_message("Unexpected error")
+                return ResponseBodyMessage::fail_message(err.to_string())
                     .send_response(StatusCode::INTERNAL_SERVER_ERROR);
             }
         }
     }
 }
+
 use actix_web::cookie::time;
 
 #[derive(Debug, thiserror::Error, Clone)]

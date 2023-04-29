@@ -15,8 +15,12 @@ pub async fn register_user(
     pool: web::Data<Pool<Postgres>>,
 ) -> Result<HttpResponse, Error> {
     let config = serde_qs::Config::new(25, false);
-    // let mut user = config.deserialize_str::<RegisterUserData>(req.query_string())?;
-    let mut user = config.deserialize_str::<RegisterUserData>(req.query_string())?;
+    let mut user = match config.deserialize_str::<RegisterUserData>(req.query_string()) {
+        Ok(user) => user,
+        Err(err) => {
+            return Err(UserError::SerdeQsError(err).into());
+        }
+    };
     tracing::info!("Register attempt {:?}", user.email);
 
     match user.register(pool).await {
@@ -51,7 +55,12 @@ pub async fn login_user(
     pool: web::Data<Pool<Postgres>>,
 ) -> Result<HttpResponse, Error> {
     let config = serde_qs::Config::new(25, false);
-    let item = config.deserialize_str::<LoginData>(req.query_string())?;
+    let item = match config.deserialize_str::<LoginData>(req.query_string()) {
+        Ok(item) => item,
+        Err(err) => {
+            return Err(UserError::SerdeQsError(err).into());
+        }
+    };
 
     tracing::info!("login attempt {:?}", item.email);
 

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::{auth::AUTHENTIFIED_COOKIE, utils::make_removal_cookie};
 
 const SUCCESS: &str = "success";
-const FAILURE: &str = "sailure";
+const FAILURE: &str = "failure";
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct ResponseBodyMessage<T> {
