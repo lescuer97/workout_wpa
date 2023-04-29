@@ -1,5 +1,6 @@
 use crate::auth::{LoginDataToSend, RegisterUserData};
 use crate::error::UserError;
+use crate::Excercise;
 use actix_web::web::Data;
 use sqlx;
 use sqlx::{Pool, Postgres};
@@ -49,4 +50,36 @@ pub async fn query_user_with_email(
     .await?;
 
     return Ok(user_query);
+}
+
+pub async fn register_excersice(
+    ex: Excercise,
+    pool: Data<Pool<Postgres>>,
+) -> Result<(), UserError> {
+    let mut conn = pool.acquire().await?;
+    if let Some(uuid) = ex.id {
+        sqlx::query_as!(
+            Excersice,
+            r#"
+    INSERT INTO excersices ( name, weight, media_url, sets, rest, reps, weight_unit, used_muscles, workout_type, id)
+    VALUES ( $1, $2, $3, $4, $5, $6, $7, $8::muscle[], $9, $10)
+            "#,
+            ex.name,
+            ex.weight,
+            ex.media_url,
+            ex.sets,
+            ex.rest,
+            ex.reps,
+            ex.weight_unit.to_owned() as _,
+            ex.used_muscles.to_owned() as _,
+            ex.workout_type.to_owned() as _,
+            uuid,
+        )
+        .execute(&mut conn)
+        .await?;
+
+        return Ok(());
+    } else {
+        return Err(UserError::UnexpectedError);
+    }
 }
